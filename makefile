@@ -43,7 +43,7 @@ VERNO = $(VER).$(VERREV)
 
 VER = $(shell cat version.txt)
 
-VERREV = $(shell hg id -n)
+VERREV = $(shell git log --pretty=format:'%h' -n 1)
 
 NEWVER ?= $(VER)
 
@@ -66,8 +66,8 @@ $(OBJPATH)%.o : $(SRCPATH)%.cpp $(SRCPATH)*.h
 verup:
 ifneq ($(NEWVER),$(VER))
 	echo $(NEWVER)>version.txt
-	hg commit --message=Version_$(NEWVER) -- version.txt
-	hg tag $(NEWVER)
+	git commit -m 'Ver_$(NEWVER)'
+	git tag $(NEWVER)
 endif
 
 version:
@@ -75,9 +75,9 @@ ifneq ($(VERREV),$(shell cat rev.txt))
 	echo \#ifndef VERSIONNO_H > src/version_no.h
 	echo \#define VERSIONNO_H >> src/version_no.h
 	echo \#include \<string\> >> src/version_no.h
-	echo const string VERSIONNO = \"$(VER).$(VERREV)\"\; >> src/version_no.h
+	echo const string VERSIONNO = \"$(VER)-$(VERREV)\"\; >> src/version_no.h
 	echo \#endif >> src/version_no.h
-	echo $(VERREV)>rev.txt
+	echo $(VERREV) > rev.txt
 endif
 
 clean:
