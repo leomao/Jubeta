@@ -1,3 +1,16 @@
+# Binary folder
+bin
+
+# Object folder
+obj
+
+# Tags
+tags
+src/tags
+
+# something else
+rev.txt
+
 # Compiled Object files
 *.slo
 *.lo
