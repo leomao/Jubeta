@@ -22,6 +22,7 @@ class Song
         int Judge(int, int, int);
         int Calculate();
         int GetLength();
+        int GetMaxIndex();
         int GetNoteNumber();
         int* GetMusicBar();
         wxString GetMusic();
@@ -44,6 +45,7 @@ class Song
         wxString jacket_;
 
         int length_;
+        int maxIndex_;
         int noteNumber_;
         int* musicbar_;
 

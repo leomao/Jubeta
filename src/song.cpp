@@ -21,7 +21,7 @@ Song::Song(wxString name)
     int* onotes = new int[160000];
     jacket_ = "none";
     music_ = "none";
-    length_ = 0;
+    maxIndex_ = 0;
     isOk_ = false;
     highScore_ = 0;
     wxString foldername = ("songs/" + name);
@@ -112,23 +112,24 @@ Song::Song(wxString name)
             }
             else {
                 int note = convertToInt(tt);
-                position_[length_] = position + delay;
-                onotes[length_] = note;
-                length_++;
+                position_[maxIndex_] = position + delay;
+                onotes[maxIndex_] = note;
+                maxIndex_++;
             }
         }
     }
 
     song.Close();
-    int barLength = position_[length_ - 1] + 3000;
+    length_ = position_[maxIndex_ - 1];
+    int barLength = length_ + 3000;
 
-    for (int i = 0; i < length_; i++) {
+    for (int i = 0; i < maxIndex_; i++) {
         positionInBar_[i] = position_[i] * 120 / barLength;
     }
 
-    notes_ = new bool[16 * length_];
-    judge_ = new int[16 * length_];
-    //memset (notes_, 0, sizeof (bool) * 16 * (length_ + 1));
+    notes_ = new bool[16 * maxIndex_];
+    judge_ = new int[16 * maxIndex_];
+    //memset (notes_, 0, sizeof (bool) * 16 * (maxIndex_ + 1));
     musicbar_ = new int[120];
     noteNumber_ = 0;
     int pointer = 0;
@@ -136,7 +137,7 @@ Song::Song(wxString name)
     for (int i = 0; i < 120; ++i) {
         musicbar_[i] = 0;
 
-        while (pointer < length_ && positionInBar_[pointer] <= i) {
+        while (pointer < maxIndex_ && positionInBar_[pointer] <= i) {
             for (int j = 0; j < 16; ++j) {
                 if (onotes[pointer] & 1) {
                     notes_[16 * pointer + j] = true;
@@ -223,6 +224,11 @@ int Song::Calculate()
 int Song::GetLength()
 {
     return length_;
+}
+
+int Song::GetMaxIndex()
+{
+    return maxIndex_;
 }
 
 int* Song::GetMusicBar()

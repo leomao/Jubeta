@@ -10,7 +10,7 @@
 using namespace std;
 
 MusicBar::MusicBar(wxWindow* parent, wxPoint barpos, wxSize barsize)
-    : wxPanel(parent, wxID_ANY,
+    : wxPanel(parent, ID_MUSICBAR,
               barpos, barsize, wxBORDER_NONE, "MusicBar")
 {
     none.Set("#444444");
@@ -20,22 +20,26 @@ MusicBar::MusicBar(wxWindow* parent, wxPoint barpos, wxSize barsize)
     border.Set("#000000");
     position.Set("#FF0000");
     SetBackgroundStyle(wxBG_STYLE_PAINT);
-    size_ = barsize.GetHeight() / 12;
+    side_ = barsize.GetHeight() / 12;
+
     Bind(wxEVT_PAINT, &MusicBar::OnPaint, this);
 
-    bar_;
+    size_ = barsize;
+    pos_ = barpos;
     length_ = 0;
     now_ = 0;
     judge_ = new int[120];
 
     for (int i = 0; i < 120; i++)
         judge_[i] = 0;
+    
+
 }
 
 void MusicBar::Set(Song* song)
 {
     bar_ = song->GetMusicBar();
-    length_ = song->GetPosition(song->GetLength() - 1) + 3000;
+    length_ = song->GetLength() + 3000;
     Clean();
     return;
 }
@@ -66,7 +70,7 @@ void MusicBar::Result(int index, int judge)
     if (judge_[index] > result)
         judge_[index] = result;
 
-    RefreshRect(wxRect(size_ * index, 0, size_, size_ * 12));
+    RefreshRect(wxRect(side_ * index, 0, side_, side_ * 12));
     return;
 }
 
@@ -97,10 +101,10 @@ bool MusicBar::NowRefresh(int n)
     if (j1 != j)
         judge_[j] = 4;
 
-    int x = size_ * 120 * n / length_;
-    x -= size_;
-    int x1 = size_ * 120 * now_ / length_;
-    x1 -= size_;
+    int x = side_ * 120 * n / length_;
+    x -= side_;
+    int x1 = side_ * 120 * now_ / length_;
+    x1 -= side_;
 
     if (x1 != x) {
         now_ = n;
@@ -110,7 +114,7 @@ bool MusicBar::NowRefresh(int n)
             out = false;
         }
         else {
-            RefreshRect(wxRect(x, 0, size_ * 2, size_ * 12));
+            RefreshRect(wxRect(x, 0, side_ * 2, side_ * 12));
         }
     }
 
@@ -125,6 +129,12 @@ void MusicBar::Clean()
         judge_[i] = 0;
 
     Refresh();
+}
+
+int MusicBar::jump(int pixelPosition)
+{
+    now_ = pixelPosition * length_ / size_.GetWidth();
+    return now_;
 }
 
 void MusicBar::loadRecord()
@@ -160,23 +170,23 @@ void MusicBar::show(wxDC& dc)
         if (n > 8)
             n = 8;
 
-        dc.DrawRectangle(size_ * i, size_ * (12 - n) - 1,
-                         size_, size_ * n);
+        dc.DrawRectangle(side_ * i, side_ * (12 - n) - 1,
+                         side_, side_ * n);
         dc.SetPen(wxPen(border));
-        dc.DrawLine(size_ * i - 1, 0,
-                    size_ * i - 1, size_ * 12);
+        dc.DrawLine(side_ * i - 1, 0,
+                    side_ * i - 1, side_ * 12);
     }
 
     dc.SetBrush(wxBrush(border));
 
     for (int i = 0; i < 12; i++) {
-        dc.DrawLine(0, size_ * (11 - i) - 1,
-                    size_ * 120, size_ * (11 - i) - 1);
+        dc.DrawLine(0, side_ * (11 - i) - 1,
+                    side_ * 120, side_ * (11 - i) - 1);
     }
 
     //dc.SetPen(wxPen(position));
-    //dc.DrawLine(size_ * 120 * now_ / length_, 0,
-                //size_ * 120 * now_ / length_, size_ * 12);
+    //dc.DrawLine(side_ * 120 * now_ / length_, 0,
+                //side_ * 120 * now_ / length_, side_ * 12);
     
 }
 
@@ -196,8 +206,8 @@ void MusicBar::OnPaint(wxPaintEvent& evt)
         case S_PLAY:
             show(dc);
             dc.SetPen(wxPen(position));
-            dc.DrawLine(size_ * 120 * now_ / length_, 0,
-                        size_ * 120 * now_ / length_, size_ * 12);
+            dc.DrawLine(side_ * 120 * now_ / length_, 0,
+                        side_ * 120 * now_ / length_, side_ * 12);
             break;
         case S_OPT:
             break;

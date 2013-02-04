@@ -16,12 +16,13 @@ LINKER  = $(shell wx-config --cxx)
 SHARED  := 1
 
 DEFINES = -g -O2
+CXXFLAG =
 WXCXXFLAG = `wx-config --cxxflags`
 WXSHAREDCXXFLAG = `wx-config --static=no --cxxflags`
 ifeq ($(SHARED), 1)
-FLAGS = $(DEFINES) $(WXSHAREDCXXFLAG)
+FLAGS = $(DEFINES) $(WXSHAREDCXXFLAG) $(CXXFLAG)
 else
-FLAGS = $(DEFINES) $(WXCXXFLAG)
+FLAGS = $(DEFINES) $(WXCXXFLAG) $(CXXFLAG)
 endif
 
 OSLIB   = 

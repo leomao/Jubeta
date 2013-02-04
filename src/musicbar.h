@@ -2,6 +2,7 @@
 #define MUSICBAR_H
 
 #include "song.h"
+#include "object.h"
 
 #include <wx/wx.h>
 
@@ -14,8 +15,10 @@ class MusicBar : public wxPanel
         void Now(int);
         int GetNow();
         bool NowRefresh(int);
+        int jump(int);
         void Clean();
         void show(wxDC&);
+
     private:
         wxColour none;
         wxColour gray;
@@ -23,7 +26,10 @@ class MusicBar : public wxPanel
         wxColour yellow;
         wxColour border;
         wxColour position;
-        int size_;
+
+        wxSize size_;
+        wxPoint pos_;
+        int side_;
         int* bar_;
         int* judge_;
         int length_;

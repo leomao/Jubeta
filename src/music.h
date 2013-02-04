@@ -14,6 +14,7 @@ class Music
         void Load(Song* song);
         void Start();
         void Pause();
+        void jump(int position);
         void Stop();
         long Time();
 
@@ -23,6 +24,7 @@ class Music
         bool isMusic_;
         bool isStop_;
         long now_;
+        long maxPosition_;
 
 };
 

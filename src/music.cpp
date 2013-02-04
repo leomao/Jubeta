@@ -55,6 +55,16 @@ void Music::Pause()
     return;
 }
 
+void Music::jump(int position)
+{
+    Pause();
+    if (isMusic_ && position <= mediaCtrl_->Length())
+        mediaCtrl_->Seek(position);
+
+    now_ = position;
+    return;
+}
+
 void Music::Stop()
 {
     if (isMusic_)

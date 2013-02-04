@@ -21,6 +21,7 @@ enum Jubeta_ID {
     ID_SYNCTIMER,
     ID_JUBETA,
     ID_MUSIC,
+    ID_MUSICBAR,
     ID_BACKGROUND,
     ID_INFORMATION
 };

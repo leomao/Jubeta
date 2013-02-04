@@ -68,7 +68,7 @@ Jubeta::Jubeta()
         config->Write("height", defheight);
 
     height = configData;
-    SetClientSize(width, height);
+    SetClientSize(width, height + 20);
 
     //設定鍵位
     //之後要加入 gamepad 的 Key
@@ -111,7 +111,7 @@ Jubeta::Jubeta()
     // 設定畫面配置
     // 以後看是不是改用 Sizer
     
-    height -= 20;
+    //height -= 20;
 
     if (width < height) {
         board = width / 21;
@@ -177,10 +177,11 @@ Jubeta::Jubeta()
     //Bind (wxEVT_IDLE, &Jubeta::OnIdle, this);
     Bind(wxEVT_TIMER, &Jubeta::sync, this, ID_SYNCTIMER);
     // 微小時間的觸發器和 onTimer()連結
+    musicbar->Bind(wxEVT_LEFT_DOWN, &Jubeta::onLeftDown, this);
+    //Bind(wxEVT_LEFT_UP, &Jubeta::onLeftUp, this, ID_MUSICBAR, ID_MUSICBAR, musicbar);
 
-    welcome(); //一開始先從 welcome()開始進入正式程序
-    //Switcher();
-    //syncTimer->Start (1);
+    welcome(); //一開始先從 welcome()開始進入正式程序//Switcher(); //syncTimer->Start (1);
+    
     return;
 }
 
@@ -189,7 +190,7 @@ Jubeta::Jubeta()
 Jubeta::~Jubeta()
 {
     // Destructor
-    delete music, syncTimer, inf, bg;
+    delete music, syncTimer, inf, bg, musicbar, now, config;
     delete []  buttons, songs;
 }
 
@@ -524,7 +525,7 @@ void Jubeta::select(int button_i)
             currentPlace = button_i;
             now = songs[item[button_i]];
 
-            length = now->GetLength();
+            maxIndex_ = now->GetMaxIndex();
             setMusicBar(now);
             music->Load(now);
         }
@@ -576,6 +577,15 @@ void Jubeta::play()
 
 
 
+void Jubeta::jump(int pixelPosition)
+{
+    toggle(-1);
+    position = musicbar->jump(pixelPosition);
+    music->jump(position);
+}
+
+
+
 void Jubeta::sync(wxTimerEvent& evt)
 {
     if (isstart) {
@@ -597,12 +607,11 @@ void Jubeta::sync(wxTimerEvent& evt)
             SetTitle(tmp);
 
             if (!ispaused) {
-                while (pointer < length &&
+                while (pointer < maxIndex_ &&
                         now->GetPosition(pointer) <= position) {
                     //printf("%d : ", pointer);
                     for (int i = 0; i < 16; i++) {
-                        if (now->GetNotes(i, pointer))
-                            buttons[i]->start(pointer,
+                        if (now->GetNotes(i, pointer)) buttons[i]->start(pointer,
                                               now->GetPosition(pointer));
                     }
 
@@ -621,9 +630,19 @@ void Jubeta::sync(wxTimerEvent& evt)
 
 
 
-void Jubeta::toggle()
+void Jubeta::toggle(int s = 0)
 {
-    if (ispaused) {
+    if (s < 0 && !ispaused) {
+        ispaused = true;
+
+        music->Pause();
+
+        //syncTimer->Stop();
+        for (int i = 0; i < 16; i++) {
+            buttons[i]->toggle();
+        }
+    }
+    else if (s > 0 && ispaused) {
         ispaused = false;
 
         music->Start();
@@ -635,13 +654,11 @@ void Jubeta::toggle()
         //syncTimer->Start();
     }
     else {
-        ispaused = true;
-
-        music->Pause();
-
-        //syncTimer->Stop();
-        for (int i = 0; i < 16; i++) {
-            buttons[i]->toggle();
+        if (ispaused) {
+            toggle(1);
+        }
+        else {
+            toggle(-1);
         }
     }
 
@@ -685,7 +702,19 @@ void Jubeta::finish()
 
 void Jubeta::setOption()
 {
+    //cout << "reload songs" << endl;
+    //loadSongs();
+    //itemPosition = 0;
+    //currentPlace = 0;
+    //chooseSong();
+    return;
+}
 
+
+
+void Jubeta::convert()
+{
+    Convert_sheet();
     return;
 }
 
@@ -696,6 +725,24 @@ void Jubeta::onIdle(wxIdleEvent& evt)
     //Switcher();
     evt.RequestMore();
     return;
+}
+
+
+
+void Jubeta::onLeftDown(wxMouseEvent& evt)
+{
+    cout << evt.GetX() << endl;
+    if (status == S_PLAY && isstart) {
+        jump(evt.GetX());
+    }
+}
+
+
+
+void Jubeta::onLeftUp(wxMouseEvent& evt)
+{
+    if (status == S_PLAY) {
+    }
 }
 
 
@@ -718,7 +765,8 @@ void Jubeta::onKey(wxKeyEvent& evt)
                 start();
             }
             else if (keycode == key[14]) {
-                //status = S_OPT;
+                status = S_OPT;
+                setOption();
             }
             else if (keycode == key[13]) {
                 shiftRight();
@@ -788,14 +836,6 @@ void Jubeta::releaseKey(wxKeyEvent& evt)
 
 
 
-void Jubeta::convert()
-{
-    Convert_sheet();
-    return;
-}
-
-
-
 void Jubeta::onAbout(wxCommandEvent& event)
 {
     wxString tmp = "Jubeta Emulator" + VERSIONNO
@@ -812,3 +852,4 @@ void Jubeta::onQuit(wxCommandEvent& event)
     Close();
     return;
 }
+

@@ -61,7 +61,7 @@ class Jubeta : public wxFrame
         int outboard;
 
         Song* now;
-        int length;
+        int maxIndex_;
 
         int songCount;
         int gridCount;
@@ -95,15 +95,23 @@ class Jubeta : public wxFrame
 
         void play();
         void sync(wxTimerEvent& evt);
-        void toggle();
+        void jump(int);
+        void toggle(int);
         void stop();
         void finish();
 
         void setOption();
+        void reloadSongs();
+        void modifyKey();
+        void changeMarker();
+        void changeBackground();
+        void changeTheme();
         void convert();
 
         void onIdle(wxIdleEvent& evt);
         //void OnLoad (wxMediaEvent& evt);
+        void onLeftDown(wxMouseEvent& evt);
+        void onLeftUp(wxMouseEvent& evt);
         void onAbout(wxCommandEvent& event);
         void onQuit(wxCommandEvent& event);
 };

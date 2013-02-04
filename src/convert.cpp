@@ -49,6 +49,8 @@ int transform(wxString j, ConvertMode mode)
         return 0;
     else if (j == "－")
         return 0;
+    else if (j == "-")
+        return 0;
     else if (j == "①")
         return 1;
     else if (j == "②")
@@ -289,8 +291,8 @@ void Convert_sheet()
                     }
 
                     now += interval;
-                    cout << notes << endl;
-                    cout << tempo << endl;
+                    //cout << notes << endl;
+                    //cout << tempo << endl;
                 }
             }
         }
