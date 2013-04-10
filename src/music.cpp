@@ -22,12 +22,12 @@ Music::Music(wxWindow* parent)
 
 void Music::Load(Song* song)
 {
-    if (song->GetMusic() != "none") {
-        wxString file = wxGetCwd() + "/" + song->GetMusic();
+    if (song->getMusic() != "none") {
+        wxString file = wxGetCwd() + "/" + song->getMusic();
         isMusic_ = mediaCtrl_->Load(file);
 
         if (!isMusic_)
-            wxMessageBox("Failed to Load " + song->GetMusic(), "Failed");
+            wxMessageBox("Failed to Load " + song->getMusic(), "Failed");
     }
     else
         isMusic_ = false;

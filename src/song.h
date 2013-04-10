@@ -5,51 +5,52 @@
 
 class Song
 {
-    public:
-        Song();
-        Song(wxString name);
-        ~Song();
+public:
+    Song();
+    Song(wxString name);
+    ~Song();
 
-        int perfect;
-        int great;
-        int good;
-        int poor;
-        int miss;
+    int perfect;
+    int great;
+    int good;
+    int poor;
+    int miss;
 
-        void Reset();
-        int GetPosition(int);
-        bool GetNotes(int, int);
-        int Judge(int, int, int);
-        int Calculate();
-        int GetLength();
-        int GetMaxIndex();
-        int GetNoteNumber();
-        int* GetMusicBar();
-        wxString GetMusic();
-        wxString getTitle();
-        wxString GetJacket();
-        bool IsOk();
+    void reset();
+    int searchPointer(int);
+    int getPosition(int);
+    bool getNotes(int, int);
+    int judge(int, int, int);
+    int calculate();
+    int getLength();
+    int getMaxIndex();
+    int getNoteNumber();
+    int* getMusicBar();
+    wxString getMusic();
+    wxString getTitle();
+    wxString getJacket();
+    bool isOk();
 
-    private:
-        bool isOk_;
-        bool* notes_;
-        int* position_;
-        int* positionInBar_;
-        int lev_;
-        int dif_;
-        int highScore_;
+private:
+    bool isOk_;
+    bool* notes_;
+    int* position_;
+    int* positionInBar_;
+    int lev_;
+    int dif_;
+    int highScore_;
 
-        wxString title_;
-        wxString artist_;
-        wxString music_;
-        wxString jacket_;
+    wxString title_;
+    wxString artist_;
+    wxString music_;
+    wxString jacket_;
 
-        int length_;
-        int maxIndex_;
-        int noteNumber_;
-        int* musicbar_;
+    int length_;
+    int maxIndex_;
+    int noteNumber_;
+    int* musicbar_;
 
-        int* judge_;
+    int* judge_;
 
 };
 

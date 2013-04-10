@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <iostream>
+#include <algorithm>
 
 #include "jubeta.h"
 #include "object.h"
@@ -53,10 +54,10 @@ Jubeta::Jubeta()
     music = new Music(this);
     //
     // Load Config
-    config = new wxConfig("Jubeta", wxEmptyString, "config", "config",
-                          wxCONFIG_USE_LOCAL_FILE |
-                          wxCONFIG_USE_RELATIVE_PATH,
-                          wxConvAuto());
+    config = new wxFileConfig("Jubeta", wxEmptyString, "config", "config",
+                              wxCONFIG_USE_LOCAL_FILE |
+                              wxCONFIG_USE_RELATIVE_PATH,
+                              wxConvAuto());
     long configData;
 
     if (!config->Read("width", &configData, defwidth))
@@ -83,23 +84,6 @@ Jubeta::Jubeta()
     }
 
     SetBackgroundStyle(wxBG_STYLE_PAINT);
-    //
-    //MenuBar 未來要拿掉！
-    //menubar = new wxMenuBar;
-    //fileMenu = new wxMenu;
-    //optionMenu = new wxMenu;
-    //openfileItem = fileMenu->Append(wxID_OPEN, "&Open");
-    //convertItem = fileMenu->Append(wxID_ANY, "&Convert");
-    //quitItem = fileMenu->Append(wxID_EXIT, "&Quit");
-    //optionItem = optionMenu->Append(wxID_ANY, "&Option...");
-    //menubar->Append(fileMenu, "&File");
-    //menubar->Append(optionMenu, "&Option");
-    //SetMenuBar(menubar);
-    //Bind(wxEVT_COMMAND_MENU_SELECTED,
-    //&Jubeta::convert, this, convertItem->GetId());
-    //Bind(wxEVT_COMMAND_MENU_SELECTED,
-    //&Jubeta::onQuit, this, quitItem->GetId());
-    //
     //
     wxSize  barsize;
     wxPoint barpos;
@@ -153,7 +137,7 @@ Jubeta::Jubeta()
         tmp = wxPoint(outboard + (i % 4) * (side + board),
                       outboard + (i / 4) * (side + board));
         buttons[i] = new Button(bg, i, tmp, size, marker, jackets,
-                                bgImage_, musicbar, &now);
+                                bgImage_, musicbar, &now_);
     }
 
     wxString markername;
@@ -175,12 +159,14 @@ Jubeta::Jubeta()
     Center();
 
     //Bind (wxEVT_IDLE, &Jubeta::OnIdle, this);
-    Bind(wxEVT_TIMER, &Jubeta::sync, this, ID_SYNCTIMER);
+    Bind(wxEVT_TIMER, &Jubeta::onTimer, this, ID_SYNCTIMER);
     // 微小時間的觸發器和 onTimer()連結
-    musicbar->Bind(wxEVT_LEFT_DOWN, &Jubeta::onLeftDown, this);
-    //Bind(wxEVT_LEFT_UP, &Jubeta::onLeftUp, this, ID_MUSICBAR, ID_MUSICBAR, musicbar);
+    //musicbar->Bind(wxEVT_LEFT_DOWN, &Jubeta::onLeftDown, this);
+    //musicbar->Bind(wxEVT_LEFT_UP, &Jubeta::onLeftUp, this);
 
-    welcome(); //一開始先從 welcome()開始進入正式程序//Switcher(); //syncTimer->Start (1);
+    welcome(); //一開始先從 welcome()開始進入正式程序
+    //Switcher(); 
+    //syncTimer->Start (1);
     
     return;
 }
@@ -190,7 +176,7 @@ Jubeta::Jubeta()
 Jubeta::~Jubeta()
 {
     // Destructor
-    delete music, syncTimer, inf, bg, musicbar, now, config;
+    delete music, syncTimer, inf, bg, musicbar, now_, config;
     delete []  buttons, songs;
 }
 
@@ -323,18 +309,18 @@ void Jubeta::setTheme(wxString theme)
         if (imagedir.GetFirst(&tmp, "*playBG.*")) {
             playBG.LoadFile(imagedir.GetName() + "/" + tmp);
             //playBG = playBG.Scale(width, width);
-            bgImage_[1] = wxBitmap(playBG);
+            bgImage_[1] = wxBitmap(playBG.Scale(board * 21, board * 21));
         }
 
         if (imagedir.GetFirst(&tmp, "*chooseBG.*")) {
             chooseBG.LoadFile(imagedir.GetName() + "/" + tmp);
             //chooseBG = chooseBG.Scale(width, width);
-            bgImage_[0] = wxBitmap(chooseBG);
+            bgImage_[0] = wxBitmap(chooseBG.Scale(board * 21, board * 21));
         }
 
         bg->setTheme(bgImage_);
 
-        if (sounddir.GetFirst(&tmp, "handclap.wav")) {
+        if (sounddir.GetFirst(&tmp, "beat.wav")) {
             beatfile_ = sounddir.GetName() + "/" + tmp;
         }
     }
@@ -362,7 +348,7 @@ void Jubeta::loadSongs()
             //wxPuts (songname); //debug用
             songs[songCount] = new Song(songname);  // 加入曲目
 
-            if (songs[songCount]->IsOk())
+            if (songs[songCount]->isOk())
                 songCount++; // 如果這個曲目是可用的，將計數器加一
 
             cont = songdir.GetNext(&songname);
@@ -424,9 +410,9 @@ void Jubeta::setItem()
 
     for (int i = 0; i < 12; i++) {
         if (item[i] < songCount) {
-            if (songs[item[i]]->GetJacket() != "none") {
+            if (songs[item[i]]->getJacket() != "none") {
                 wxImage ojacket;
-                ojacket.LoadFile(songs[item[i]]->GetJacket());
+                ojacket.LoadFile(songs[item[i]]->getJacket());
                 jackets[i] = wxBitmap(ojacket.Scale(side * 0.85,
                                                     side * 0.85));
             }
@@ -523,11 +509,11 @@ void Jubeta::select(int button_i)
             buttons[button_i]->choose(true);
             currentItem = item[button_i];
             currentPlace = button_i;
-            now = songs[item[button_i]];
+            now_ = songs[item[button_i]];
 
-            maxIndex_ = now->GetMaxIndex();
-            setMusicBar(now);
-            music->Load(now);
+            maxIndex_ = now_->getMaxIndex();
+            setMusicBar(now_);
+            music->Load(now_);
         }
     }
 
@@ -558,9 +544,9 @@ void Jubeta::play()
 {
     musicbar->Clean();
     isstart = true;
-    now->Reset();
+    now_->reset();
     pointer = 0;
-    position = 0;
+    position_ = 0;
 
     for (int i = 0; i < 16; i++) {
         buttons[i]->stop();
@@ -580,49 +566,44 @@ void Jubeta::play()
 void Jubeta::jump(int pixelPosition)
 {
     toggle(-1);
-    position = musicbar->jump(pixelPosition);
-    music->jump(position);
+    position_ = musicbar->jump(pixelPosition);
+    music->jump(position_);
+    pointer =  now_->searchPointer(position_);
 }
 
 
 
-void Jubeta::sync(wxTimerEvent& evt)
+void Jubeta::sync(int position)
 {
-    if (isstart) {
-        if (position != music->Time()) {
-            position = music->Time();
+    position_ = position;
 
-            if (position - musicbar->GetNow() > 20 ||
-                    musicbar->GetNow() - position > 20) {
-                isstart = musicbar->NowRefresh(position);
-            }
-
-            for (int i = 0; i < 16; i++) {
-                buttons[i]->runMarker(position);
-            }
-
-            wxString tmp;
-            tmp.Printf("Jubeta - Score : %d Notes : %d",
-                       now->Calculate(), now->GetNoteNumber());
-            SetTitle(tmp);
-
-            if (!ispaused) {
-                while (pointer < maxIndex_ &&
-                        now->GetPosition(pointer) <= position) {
-                    //printf("%d : ", pointer);
-                    for (int i = 0; i < 16; i++) {
-                        if (now->GetNotes(i, pointer)) buttons[i]->start(pointer,
-                                              now->GetPosition(pointer));
-                    }
-
-                    pointer++;
-                    //printf("\n");
-                }
-            }
-        }
+    if (position_ - musicbar->GetNow() > 20 ||
+            musicbar->GetNow() - position_ > 20) {
+        isstart = musicbar->NowRefresh(position_);
     }
-    else {
-        stop();
+
+    for (int i = 0; i < 16; i++) {
+        buttons[i]->runMarker(position_);
+    }
+
+    wxString tmp;
+    tmp.Printf("Jubeta - Score : %d Notes : %d",
+               now_->calculate(), now_->getNoteNumber());
+    SetTitle(tmp);
+
+    if (!ispaused) {
+        while (pointer < maxIndex_ &&
+                now_->getPosition(pointer) <= position_) {
+            //printf("%d : ", pointer);
+            for (int i = 0; i < 16; i++) {
+                if (now_->getNotes(i, pointer)) 
+                    buttons[i]->start(pointer,
+                                        now_->getPosition(pointer));
+            }
+
+            pointer++;
+            //printf("\n");
+        }
     }
 
     return;
@@ -672,6 +653,7 @@ void Jubeta::stop()
     isstart = false;
     music->Stop();
     syncTimer->Stop();
+    musicbar->Clean();
     status = S_CH;
     chooseSong();
     return;
@@ -688,12 +670,12 @@ void Jubeta::finish()
                 Good : %d\n\
                 Poor : %d\n\
                 Miss : %d\n",
-               now->Calculate(),
-               now->perfect,
-               now->great,
-               now->good,
-               now->poor,
-               now->miss);
+               now_->calculate(),
+               now_->perfect,
+               now_->great,
+               now_->good,
+               now_->poor,
+               now_->miss);
     wxMessageBox(out, "Score");
     return;
 }
@@ -702,11 +684,11 @@ void Jubeta::finish()
 
 void Jubeta::setOption()
 {
-    //cout << "reload songs" << endl;
     //loadSongs();
     //itemPosition = 0;
     //currentPlace = 0;
     //chooseSong();
+    status = S_CH;
     return;
 }
 
@@ -717,6 +699,22 @@ void Jubeta::convert()
     Convert_sheet();
     return;
 }
+
+
+
+void Jubeta::onTimer(wxTimerEvent& evt)
+{
+    if (isstart) {
+        if (position_ != music->Time()) {
+            sync(music->Time());
+        }
+    }
+    else {
+        stop();
+    }
+    return;
+}
+
 
 
 
@@ -731,7 +729,6 @@ void Jubeta::onIdle(wxIdleEvent& evt)
 
 void Jubeta::onLeftDown(wxMouseEvent& evt)
 {
-    cout << evt.GetX() << endl;
     if (status == S_PLAY && isstart) {
         jump(evt.GetX());
     }

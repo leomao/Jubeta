@@ -5,12 +5,12 @@
 
 class INF : public wxPanel
 {
-    public:
-        INF(wxWindow*, wxPoint, wxSize);
+public:
+    INF(wxWindow*, wxPoint, wxSize);
 
-    private:
+private:
 
-        void onPaint(wxPaintEvent& evt);
+    void onPaint(wxPaintEvent& evt);
 };
 
 #endif

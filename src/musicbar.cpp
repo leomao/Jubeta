@@ -27,19 +27,15 @@ MusicBar::MusicBar(wxWindow* parent, wxPoint barpos, wxSize barsize)
     size_ = barsize;
     pos_ = barpos;
     length_ = 0;
-    now_ = 0;
     judge_ = new int[120];
 
-    for (int i = 0; i < 120; i++)
-        judge_[i] = 0;
-    
-
+    Clean();
 }
 
 void MusicBar::Set(Song* song)
 {
-    bar_ = song->GetMusicBar();
-    length_ = song->GetLength() + 3000;
+    bar_ = song->getMusicBar();
+    length_ = song->getLength() + 3000;
     Clean();
     return;
 }
@@ -70,7 +66,8 @@ void MusicBar::Result(int index, int judge)
     if (judge_[index] > result)
         judge_[index] = result;
 
-    RefreshRect(wxRect(side_ * index, 0, side_, side_ * 12));
+    //RefreshRect(wxRect(side_ * index, 0, side_, side_ * 12));
+    Refresh();
     return;
 }
 
@@ -114,7 +111,8 @@ bool MusicBar::NowRefresh(int n)
             out = false;
         }
         else {
-            RefreshRect(wxRect(x, 0, side_ * 2, side_ * 12));
+            //RefreshRect(wxRect(x, 0, side_ * 2, side_ * 12));
+            Refresh();
         }
     }
 

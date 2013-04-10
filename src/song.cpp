@@ -1,10 +1,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include <algorithm>
 
 #include "song.h"
-#include "utility.h"
-
+#include "utility.h" 
 #include <wx/wx.h>
 #include <wx/dir.h>
 #include <wx/textfile.h>
@@ -158,7 +158,7 @@ Song::Song(wxString name)
     delete [] onotes;
     delete folder;
 
-    Reset();
+    reset();
 }
 
 Song::~Song()
@@ -166,7 +166,7 @@ Song::~Song()
     delete [] notes_, position_, musicbar_, judge_;
 }
 
-void Song::Reset()
+void Song::reset()
 {
     perfect = 0;
     great = 0;
@@ -175,17 +175,23 @@ void Song::Reset()
     miss = 0;
 }
 
-int Song::GetPosition(int pointer)
+int Song::searchPointer(int position)
+{
+    int* low = std::lower_bound(position_, position_ + maxIndex_, position);
+    return low - position_;
+}
+
+int Song::getPosition(int pointer)
 {
     return position_[pointer];
 }
 
-bool Song::GetNotes(int place, int pointer)
+bool Song::getNotes(int place, int pointer)
 {
     return notes_[16 * pointer + place];
 }
 
-int Song::Judge(int place, int pointer, int result)
+int Song::judge(int place, int pointer, int result)
 {
     int out = positionInBar_[pointer];
     judge_[16 * pointer + place] = result;
@@ -211,7 +217,7 @@ int Song::Judge(int place, int pointer, int result)
     return out;
 }
 
-int Song::Calculate()
+int Song::calculate()
 {
     int score = 0;
     score += 900000 * perfect / noteNumber_;
@@ -221,27 +227,27 @@ int Song::Calculate()
     return score;
 }
 
-int Song::GetLength()
+int Song::getLength()
 {
     return length_;
 }
 
-int Song::GetMaxIndex()
+int Song::getMaxIndex()
 {
     return maxIndex_;
 }
 
-int* Song::GetMusicBar()
+int* Song::getMusicBar()
 {
     return musicbar_;
 }
 
-int Song::GetNoteNumber()
+int Song::getNoteNumber()
 {
     return noteNumber_;
 }
 
-wxString Song::GetMusic()
+wxString Song::getMusic()
 {
     return music_;
 }
@@ -251,12 +257,12 @@ wxString Song::getTitle()
     return title_;
 }
 
-wxString Song::GetJacket()
+wxString Song::getJacket()
 {
     return jacket_;
 }
 
-bool Song::IsOk()
+bool Song::isOk()
 {
     return isOk_;
 }

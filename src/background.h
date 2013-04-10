@@ -6,18 +6,18 @@
 
 class BG : public wxPanel
 {
-    public:
-        BG(wxWindow*, wxPoint, wxSize);
+public:
+    BG(wxWindow*, wxPoint, wxSize);
 
-        void setTheme(wxBitmap*);
-        void showBG();
-        void hideBG();
+    void setTheme(wxBitmap*);
+    void showBG();
+    void hideBG();
 
-    private:
-        wxBitmap* bg_;
-        bool isHidden_;
+private:
+    wxBitmap* bg_;
+    bool isHidden_;
 
-        void onPaint(wxPaintEvent& evt);
+    void onPaint(wxPaintEvent& evt);
 };
 
 #endif

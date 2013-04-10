@@ -43,66 +43,6 @@ string SJISConv(string buf)
     return outBuf;
 }
 
-int transform(wxString j, ConvertMode mode)
-{
-    if (j == "□")
-        return 0;
-    else if (j == "－")
-        return 0;
-    else if (j == "-")
-        return 0;
-    else if (j == "①")
-        return 1;
-    else if (j == "②")
-        return 2;
-    else if (j == "③")
-        return 3;
-    else if (j == "④")
-        return 4;
-    else if (j == "⑤")
-        return 5;
-    else if (j == "⑥")
-        return 6;
-    else if (j == "⑦")
-        return 7;
-    else if (j == "⑧")
-        return 8;
-    else if (j == "⑨")
-        return 9;
-    else if (j == "⑩")
-        return 10;
-    else if (j == "⑪")
-        return 11;
-    else if (j == "⑫")
-        return 12;
-    else if (j == "⑬")
-        return 13;
-    else if (j == "⑭")
-        return 14;
-    else if (j == "⑮")
-        return 15;
-    else if (j == "⑯")
-        return 16;
-    else if (j == "⑰")
-        return 17;
-    else if (j == "⑱")
-        return 18;
-    else if (j == "⑲")
-        return 19;
-    else if (j == "⑳")
-        return 20;
-    else if (j == "A")
-        return 21;
-    else if (j == "B")
-        return 22;
-    else if (j == "C")
-        return 23;
-    else if (j == "D")
-        return 24;
-    else
-        return 0;
-}
-
 void split(wxString input, wxString& notes, wxString& tempo)
 {
     int bar = input.find_first_of("|");
@@ -114,7 +54,7 @@ void split(wxString input, wxString& notes, wxString& tempo)
     else
         notes += input;
 
-    if (notes[notes.length() - 1] == ' ')
+    while (notes[notes.length() - 1] == ' ')
         notes = notes.substr(0, notes.length() - 1);
 
     return;
@@ -132,17 +72,16 @@ int convert_to_jub(int* tt, wxString notes,
     int i = 0;
 
     while (i < nl) {
-        //if (notes[i] == ' ') {
-        //i++;
-        //continue;
-        //}
+        if (notes[i] == ' ') {
+            i++;
+            continue;
+        }
         if (notes.substr(i, 1) != "□" 
                 && notes.substr(i, 1) != " "
                 && notes.substr(i, 1) != "0")
         {
             nn[notes.substr(i, 1)] += 1 << count;
         }
-
         i++;
         count++;
     }
@@ -172,7 +111,7 @@ int convert_to_jub(int* tt, wxString notes,
             int ti = 1000 / count;
 
             for (int j = 0; j < count; j++) {
-                if (t[j] != "－" && t[j] != "0")
+                if (t[j] != "－" && t[j] != "0" && t[j] != "-")
                     tt[now] = nn[t[j]];
 
                 now += ti;

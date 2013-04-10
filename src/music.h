@@ -9,22 +9,22 @@
 
 class Music
 {
-    public:
-        Music(wxWindow* p);
-        void Load(Song* song);
-        void Start();
-        void Pause();
-        void jump(int position);
-        void Stop();
-        long Time();
+public:
+    Music(wxWindow* p);
+    void Load(Song* song);
+    void Start();
+    void Pause();
+    void jump(int position);
+    void Stop();
+    long Time();
 
-    private:
-        wxMediaCtrl* mediaCtrl_;
-        wxStopWatch* stopWatch_;
-        bool isMusic_;
-        bool isStop_;
-        long now_;
-        long maxPosition_;
+private:
+    wxMediaCtrl* mediaCtrl_;
+    wxStopWatch* stopWatch_;
+    bool isMusic_;
+    bool isStop_;
+    long now_;
+    long maxPosition_;
 
 };
 

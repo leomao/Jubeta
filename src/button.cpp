@@ -7,9 +7,10 @@
 
 #include <wx/wx.h>
 #include <wx/dcbuffer.h>
+#include <wx/dcgraph.h>
 #include <wx/graphics.h>
 
-bool isBGHidden = true;
+bool isBGHidden = false;
 
 Button::Button(wxWindow* parent, int place,
                wxPoint pos, wxSize size,
@@ -43,7 +44,7 @@ Button::Button(wxWindow* parent, int place,
     bg_       = bg;
 
     jacketPosition_ = wxPoint(size_.x * 0.075 + 1,
-                              size_.y * 0.1 + 1);
+                              size_.y * 0.12 + 1);
 
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
@@ -114,6 +115,13 @@ void Button::toggle()
 
 
 
+void Button::jump(int position)
+{
+    
+}
+
+
+
 void Button::press(int pressPosition)
 {
     isPressed_ = true;
@@ -143,7 +151,7 @@ void Button::press(int pressPosition)
             judgeLevel = 1;
         }
 
-        index = (*now_)->Judge(place_, pointer_, judgeLevel);
+        index = (*now_)->judge(place_, pointer_, judgeLevel);
         musicbar_->Result(index, judgeLevel);
     }
 
@@ -186,7 +194,7 @@ void Button::runMarker(int nowPosition)
 
         if (frame_ == 22) {
             frame_ = 80;
-            int index = (*now_)->Judge(place_, pointer_, 0);
+            int index = (*now_)->judge(place_, pointer_, 0);
             musicbar_->Result(index, 0);
         }
         else if (frame_ == 37 || frame_ == 52
@@ -204,10 +212,12 @@ void Button::runMarker(int nowPosition)
 
 void Button::onPaint(wxPaintEvent& event)
 {
-    wxBufferedPaintDC dc(this);
+    wxBufferedPaintDC pdc(this);
+    wxGCDC dc(pdc);
     dc.SetBackground(*wxTRANSPARENT_BRUSH);
     dc.Clear();
-
+    
+    dc.SetFont(dc.GetFont().Smaller());
     switch (status) {
         case S_WEL:
             if (!isBGHidden)
@@ -221,7 +231,7 @@ void Button::onPaint(wxPaintEvent& event)
                 wxColour col;
 
                 if (isSelected_) {
-                    col.Set("#0099CC");
+                    col.Set(255, 255, 0, 150);
                     wxBrush brush(col, wxSOLID);
                     dc.SetBrush(brush);
                     dc.SetPen(wxPen(col, 3, wxSOLID));
@@ -233,8 +243,8 @@ void Button::onPaint(wxPaintEvent& event)
                 //dc.SetBrush(brush);
                 //dc.SetPen(wxPen(col, 3, wxSOLID));
 
-                if (place_ < 12 && item_->IsOk()) {
-                    dc.DrawText(item_->getTitle(), 0, 0);
+                if (place_ < 12 && item_->isOk()) {
+                    dc.DrawText(item_->getTitle(), 2, 0);
                     render(dc, jackets_[place_], jacketPosition_);
                 }
                 else
