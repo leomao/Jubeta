@@ -1,6 +1,6 @@
 ###############################################################
-# Makefile Model for wxWidgets application ver 1.0
-# Created by Taii on 20060520
+# Makefile for Jubeta
+# Created by LeoMao
 ###############################################################
 
 PROGRAM = Jubeta
