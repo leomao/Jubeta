@@ -10,7 +10,9 @@
 #include <wx/dcgraph.h>
 #include <wx/graphics.h>
 
-bool isBGHidden = false;
+bool Button::isBGHidden = false;
+bool Button::isBeat = true;
+wxString Button::beatFile("");
 
 Button::Button(wxWindow* parent, int place,
                wxPoint pos, wxSize size,
@@ -95,6 +97,7 @@ void Button::start(int po, int st)
     time_     = 0;
     isPaused_ = false;
     Refresh();
+    //wxSound::Play(beatFile);
     //printf("%d ", place_);
     return;
 }

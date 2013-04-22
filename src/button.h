@@ -26,7 +26,9 @@ public:
     int getFrame();
     void runMarker(int);
 
-    static bool isBGhidden;
+    static bool isBGHidden;
+    static bool isBeat;
+    static wxString beatFile;
     //
 private:
     bool canChose_;
@@ -50,7 +52,7 @@ private:
     wxSize size_;
     wxPoint jacketPosition_;
     wxPoint pos_;
-    //wxSound beat_;
+    wxSound beat_;
     //
     void onPaint(wxPaintEvent& event);
 };

@@ -1,101 +1,66 @@
-#include <cstdio>
-#include <iostream>
-#include <algorithm>
+///////////////////////////////////////////////////////////
+// Filename:   jubeta.cpp
+// Maintainer: LeoMao
+///////////////////////////////////////////////////////////
 
 #include "jubeta.h"
-#include "object.h"
 #include "utility.h"
 #include "convert.h"
-#include "version_no.h"
+#include "version.h"
 
-#include <wx/wx.h>
-#include <wx/sizer.h>
-#include <wx/dcbuffer.h>
-#include <wx/dir.h>
-#include <wx/utils.h>
-#include <wx/mediactrl.h>
-#include <wx/stopwatch.h>
+#include <jb/jb.h>
+#include <jb/string.h>
+#include <jb/image.h>
+#include <jb/panel.h>
 
-// 預設寬高
-const long defheight = 700;
-const long defwidth = 500;
-// 預設鍵位
-const long defkey[16] = {52, 53, 54, 55, 82, 84, 89, 85,
-                         70, 71, 72, 74, 86, 66, 78, 77
-                        };
+jb::status = jb::S_WELCOME;
 
-//Game Status
-Status status = S_WEL;
- 
 Jubeta::Jubeta()
-    : wxFrame(NULL, ID_JUBETA, "Jubeta", wxDefaultPosition, wxDefaultSize,
-              wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER | wxMAXIMIZE_BOX),
-              "Jubeta")
+    : jb::Panel()
 {
     // Initial Objects
-    ismusic  = false;    //是否有音樂檔
-    ispaused = false;   //是否暫停
-    isstart  = false;    //是否開始
-    //key      = new int[20];  //鍵位
-    //marker   = new wxBitmap[80];  //marker圖檔
-    //jackets  = new wxBitmap[16]; //曲目的Jacket
-    //bgImage_ = new wxBitmap[2]; //背景
-    buttons  = new Button*[16];  //按鍵
-    songs    = new Song*[1000];    //曲目
-    //item     = new int[16];     // 選曲的選項
-    itemPosition = 0;      //啟始選單位置
-    currentItem  = -1;        //目前曲目編號
-    currentPlace = 0;        //目前曲目位置
+    is_music_   = false;
+    is_paused_  = false;
+    is_started_ = false;
+    width_  = 500;
+    height_ = 700;
+    key_ = {52, 53, 54, 55, 82, 84, 89, 85,
+            70, 71, 72, 74, 86, 66, 78, 77
+           };
+    // buttons_  = new Button*[16];
+    songs_    = new Song*[1000];
+    item_position_ = 0;
+    current_item_  = -1;
+    current_place_ = 0;
     //
-    // 用 Timer 當微小時間的呼叫器
-    syncTimer = new wxTimer(this, ID_SYNCTIMER);
+    sync_timer_ = new Timer();
     //
-    //音樂播放器
-    music = new Music(this);
+    //music player
+    music_ = new Music(this);
     //
     // Load Config
-    config = new wxFileConfig("Jubeta", wxEmptyString, "config", "config",
-                              wxCONFIG_USE_LOCAL_FILE |
-                              wxCONFIG_USE_RELATIVE_PATH,
-                              wxConvAuto());
-    long configData;
+    config_ = new jb::Config("config");
 
-    if (!config->Read("width", &configData, defwidth))
-        config->Write("width", defwidth);
+    if (!config->read("width", &width_, width_))
+        config->write("width", width_);
+    if (!config->read("height", &height_, height_))
+        config->write("height", height_);
 
-    width = configData;
+    setSize();
 
-    if (!config->Read("height", &configData, defheight))
-        config->Write("height", defheight);
-
-    height = configData;
-    SetClientSize(width, height + 20);
-
-    //設定鍵位
-    //之後要加入 gamepad 的 Key
     for (int i = 0; i < 16; i++) {
         string tmp = "b";
         tmp += convertToString(i);
 
-        if (!config->Read(tmp, &configData, defkey[i]))
-            config->Write(tmp, defkey[i]);
-
-        key[i] = configData;
+        if (!config->read(tmp, &key_[i], ke_y[i]))
+            config->write(tmp, ke_y[i]);
     }
 
-    SetBackgroundStyle(wxBG_STYLE_PAINT);
-    //
     wxSize  barsize;
     wxPoint barpos;
     wxSize  size;
     wxPoint pos;
     wxPoint tmp;
-
-    //
-    // 設定畫面配置
-    // 以後看是不是改用 Sizer
-    
-    //height -= 20;
 
     if (width < height) {
         board = width / 21;
@@ -140,209 +105,68 @@ Jubeta::Jubeta()
                                 bgImage_, musicbar, &now_);
     }
 
-    wxString markername;
-
-    //設定Marker
-    if (!config->Read("marker", &markername, "default"))
-        config->Write("marker", "default");
 
     setMarker(markername);
-    wxString theme;
+    jb::String themename;
 
-    //設定Theme
-    if (!config->Read("theme", &theme, "default"))
-        config->Write("theme", "default");
+    // 設定Theme
+    if (!config->read("theme", &themename, "default"))
+        config->write("theme", "default");
 
-    setTheme(theme);
-    config->Flush(); //更新config file
+    setTheme(themename);
+    config->update(); // update config file
     loadSongs();
-    Center();
 
-    //Bind (wxEVT_IDLE, &Jubeta::OnIdle, this);
-    Bind(wxEVT_TIMER, &Jubeta::onTimer, this, ID_SYNCTIMER);
-    // 微小時間的觸發器和 onTimer()連結
-    //musicbar->Bind(wxEVT_LEFT_DOWN, &Jubeta::onLeftDown, this);
-    //musicbar->Bind(wxEVT_LEFT_UP, &Jubeta::onLeftUp, this);
+    welcome();
 
-    welcome(); //一開始先從 welcome()開始進入正式程序
-    //Switcher(); 
-    //syncTimer->Start (1);
-    
     return;
 }
-
-
 
 Jubeta::~Jubeta()
 {
     // Destructor
-    delete music, syncTimer, inf, bg, musicbar, now_, config;
-    delete []  buttons, songs;
+    delete music_, sync_timer_, inf_, bg_, musicbar_, now_, config_;
+    delete [] songs_;
 }
 
-
-
-void Jubeta::setMarker(wxString markername)
+void Jubeta::loadConfig()
 {
-    wxBitmapType format = wxBITMAP_TYPE_PNG;
-    wxDir markerdir("marker/" + markername);
 
-    if (!markerdir.IsOpened()) {
-        wxMessageBox("Fail to load Marker!!");
-        this->Close();
-    }
-    else {
-        wxImage omarker[80];
-        wxString tmp;
-
-        for (int i = 0; i < 15; i++) {
-            if (markerdir.GetFirst(&tmp,
-                                   "*normal_" + convertToString(i)
-                                   + ".png")) {
-                omarker[i].LoadFile(markerdir.GetName() + "/" + tmp);
-            }
-        }
-
-        for (int i = 0; i < 7; i++) {
-            if (markerdir.GetFirst(&tmp,
-                                   "*normalpassed_" + convertToString(i)
-                                   + ".png")) {
-                omarker[15 + i].LoadFile(markerdir.GetName() + "/" + tmp);
-            }
-        }
-
-        for (int i = 0; i < 15; i++) {
-            if (markerdir.GetFirst(&tmp,
-                                   "*perfect_" + convertToString(i)
-                                   + ".png")) {
-                omarker[22 + i].LoadFile(markerdir.GetName() + "/" + tmp);
-            }
-        }
-
-        for (int i = 0; i < 15; i++) {
-            if (markerdir.GetFirst(&tmp,
-                                   "*great_" + convertToString(i)
-                                   + ".png")) {
-                omarker[37 + i].LoadFile(markerdir.GetName() + "/" + tmp);
-            }
-        }
-
-        for (int i = 0; i < 14; i++) {
-            if (markerdir.GetFirst(&tmp,
-                                   "*good_" + convertToString(i)
-                                   + ".png")) {
-                omarker[52 + i].LoadFile(markerdir.GetName() + "/" + tmp);
-            }
-        }
-
-        for (int i = 0; i < 13; i++) {
-            if (markerdir.GetFirst(&tmp,
-                                   "*bad_" + convertToString(i)
-                                   + ".png")) {
-                omarker[66 + i].LoadFile(markerdir.GetName() + "/" + tmp);
-            }
-        }
-
-        markerdir.GetFirst(&tmp, "*prev.png");
-        marker[79].LoadFile(markerdir.GetName() + "/" + tmp, format);
-
-        for (int i = 0; i < 79; i++) {
-            marker[i] = wxBitmap(omarker[i].Scale(side, side));
-        }
-    }
-
-    return;
 }
 
-
-
-void Jubeta::setKey(int button, int keycode)
+void Jubeta::loadMarker()
 {
-    return;
+    jb::String markername;
+
+    // 設定Marker
+    if (!config->read("marker", &markername, "default"))
+        config->write("marker", "default");
 }
 
-
-
-void Jubeta::setTheme(wxString theme)
+void Jubeta::loadKey()
 {
-    wxDir themedir("theme/" + theme);
-    wxDir imagedir(themedir.GetName() + "/images");
-    wxDir sounddir(themedir.GetName() + "/sounds");
 
-    if (!imagedir.IsOpened() || !sounddir.IsOpened()) {
-        wxMessageBox("Fail to Load Theme!!");
-        this->Close();
-    }
-    else {
-        wxImage ojackets[16];
-        wxImage onoJacket;
-        wxString tmp;
-
-        if (imagedir.GetFirst(&tmp, "*LArrow.*"))
-            ojackets[12].LoadFile(imagedir.GetName() + "/" + tmp);
-
-        if (imagedir.GetFirst(&tmp, "*RArrow.*"))
-            ojackets[13].LoadFile(imagedir.GetName() + "/" + tmp);
-
-        if (imagedir.GetFirst(&tmp, "*Option.*"))
-            ojackets[14].LoadFile(imagedir.GetName() + "/" + tmp);
-
-        if (imagedir.GetFirst(&tmp, "*Start.*"))
-            ojackets[15].LoadFile(imagedir.GetName() + "/" + tmp);
-
-        if (imagedir.GetFirst(&tmp, "*NoJacket.*"))
-            onoJacket.LoadFile(imagedir.GetName() + "/" + tmp);
-
-        noJacket = wxBitmap(onoJacket.Scale(side * 0.85, side * 0.85));
-
-        for (int i = 0; i < 12; i++) {
-            jackets[i] = noJacket;
-        }
-
-        for (int i = 12; i < 16; i++) {
-            jackets[i] = wxBitmap(ojackets[i].Scale(side, side));
-        }
-
-        wxImage playBG;
-        wxImage chooseBG;
-
-        if (imagedir.GetFirst(&tmp, "*playBG.*")) {
-            playBG.LoadFile(imagedir.GetName() + "/" + tmp);
-            //playBG = playBG.Scale(width, width);
-            bgImage_[1] = wxBitmap(playBG.Scale(board * 21, board * 21));
-        }
-
-        if (imagedir.GetFirst(&tmp, "*chooseBG.*")) {
-            chooseBG.LoadFile(imagedir.GetName() + "/" + tmp);
-            //chooseBG = chooseBG.Scale(width, width);
-            bgImage_[0] = wxBitmap(chooseBG.Scale(board * 21, board * 21));
-        }
-
-        bg->setTheme(bgImage_);
-
-        if (sounddir.GetFirst(&tmp, "beat.wav")) {
-            beatfile_ = sounddir.GetName() + "/" + tmp;
-        }
-    }
-
-    return;
 }
 
+void Jubeta::loadTheme()
+{
+
+}
 
 
 void Jubeta::loadSongs()
 {
-    wxDir songdir("songs");
+    jb::Dir songdir("songs");
 
-    if (!songdir.IsOpened()) {
+    if (!songdir.isOpened()) {
         wxMessageBox("Fail to load Songs!!");
-        this->Close();
+        this->close();
     }
     else {
         songCount = 0; // 計算有幾首曲目
-        wxString songname; //曲目名稱
+        jb::String songname; //曲目名稱
         //一個一個 folder 檢查
-        bool cont = songdir.GetFirst(&songname, wxEmptyString, wxDIR_DIRS);
+        bool cont = songdir.getFirst(&songname, "" , jb::Dir::DIRS);
 
         while (cont) {
             //wxPuts (songname); //debug用
@@ -351,7 +175,7 @@ void Jubeta::loadSongs()
             if (songs[songCount]->isOk())
                 songCount++; // 如果這個曲目是可用的，將計數器加一
 
-            cont = songdir.GetNext(&songname);
+            cont = songdir.getNext(&songname);
         }
     }
 
@@ -383,7 +207,7 @@ void Jubeta::setUser()
 
 void Jubeta::chooseSong()
 {
-    status = S_CH;
+    status = S_MENU;
     setItem(); // 設定選曲畫面的buttons
     select(currentPlace);  // 預設選擇上次的曲目
     return;
@@ -596,9 +420,9 @@ void Jubeta::sync(int position)
                 now_->getPosition(pointer) <= position_) {
             //printf("%d : ", pointer);
             for (int i = 0; i < 16; i++) {
-                if (now_->getNotes(i, pointer)) 
+                if (now_->getNotes(i, pointer))
                     buttons[i]->start(pointer,
-                                        now_->getPosition(pointer));
+                                      now_->getPosition(pointer));
             }
 
             pointer++;
@@ -654,7 +478,7 @@ void Jubeta::stop()
     music->Stop();
     syncTimer->Stop();
     musicbar->Clean();
-    status = S_CH;
+    status = S_MENU;
     chooseSong();
     return;
 }
@@ -688,7 +512,154 @@ void Jubeta::setOption()
     //itemPosition = 0;
     //currentPlace = 0;
     //chooseSong();
-    status = S_CH;
+    status = S_MENU;
+    return;
+}
+
+
+void Jubeta::setMarker(jb::String markername)
+{
+    jb::Dir markerdir("marker/" + markername);
+
+    if (!markerdir.isOpened()) {
+        wxMessageBox("Fail to load Marker!!");
+        // this->close();
+    }
+    else {
+        wxString tmp;
+
+        for (int i = 0; i < 15; i++) {
+            if (markerdir.getFirst(&tmp,
+                                   "*normal_" + convertToString(i)
+                                   + ".png")) {
+                marker[i].load(markerdir.getName() + "/" + tmp);
+            }
+        }
+
+        for (int i = 0; i < 7; i++) {
+            if (markerdir.getFirst(&tmp,
+                                   "*normalpassed_" + convertToString(i)
+                                   + ".png")) {
+                marker[15 + i].load(markerdir.getName() + "/" + tmp);
+            }
+        }
+
+        for (int i = 0; i < 15; i++) {
+            if (markerdir.getFirst(&tmp,
+                                   "*perfect_" + convertToString(i)
+                                   + ".png")) {
+                marker[22 + i].load(markerdir.getName() + "/" + tmp);
+            }
+        }
+
+        for (int i = 0; i < 15; i++) {
+            if (markerdir.getFirst(&tmp,
+                                   "*great_" + convertToString(i)
+                                   + ".png")) {
+                marker[37 + i].load(markerdir.getName() + "/" + tmp);
+            }
+        }
+
+        for (int i = 0; i < 14; i++) {
+            if (markerdir.getFirst(&tmp,
+                                   "*good_" + convertToString(i)
+                                   + ".png")) {
+                marker[52 + i].load(markerdir.getName() + "/" + tmp);
+            }
+        }
+
+        for (int i = 0; i < 13; i++) {
+            if (markerdir.getFirst(&tmp,
+                                   "*bad_" + convertToString(i)
+                                   + ".png")) {
+                marker[66 + i].load(markerdir.getName() + "/" + tmp);
+            }
+        }
+
+        markerdir.getFirst(&tmp, "*prev.png");
+        marker[79].load(markerdir.getName() + "/" + tmp, format);
+
+        for (int i = 0; i < 79; i++) {
+            marker[i] = marker[i].scale(side, side);
+        }
+    }
+
+    return;
+}
+
+
+
+void Jubeta::setKey(int button, int keycode)
+{
+    return;
+}
+
+
+
+void Jubeta::setTheme(wxString theme)
+{
+    jb::Dir themedir("theme/" + theme);
+    jb::Dir imagedir(themedir.getName() + "/images");
+    jb::Dir sounddir(themedir.getName() + "/sounds");
+
+    if (!imagedir.isOpened() || !sounddir.isOpened()) {
+        wxMessageBox("Fail to Load Theme!!");
+        this->close();
+    }
+    else {
+        wxImage ojackets[16];
+        wxImage onoJacket;
+        wxString tmp;
+
+        if (imagedir.getFirst(&tmp, "*LArrow.*"))
+            ojackets[12].load(imagedir.getName() + "/" + tmp);
+
+        if (imagedir.getFirst(&tmp, "*RArrow.*"))
+            ojackets[13].load(imagedir.getName() + "/" + tmp);
+
+        if (imagedir.getFirst(&tmp, "*Option.*"))
+            ojackets[14].load(imagedir.getName() + "/" + tmp);
+
+        if (imagedir.getFirst(&tmp, "*Start.*"))
+            ojackets[15].load(imagedir.getName() + "/" + tmp);
+
+        if (imagedir.getFirst(&tmp, "*NoJacket.*"))
+            onoJacket.load(imagedir.getName() + "/" + tmp);
+
+        noJacket = wxBitmap(onoJacket.scale(side * 0.85, side * 0.85));
+
+        for (int i = 0; i < 12; i++) {
+            jackets[i] = noJacket;
+        }
+
+        for (int i = 12; i < 16; i++) {
+            jackets[i] = wxBitmap(ojackets[i].scale(side, side));
+        }
+
+        wxImage playBG;
+        wxImage chooseBG;
+
+        if (imagedir.getFirst(&tmp, "*playBG.*")) {
+            playBG.load(imagedir.getName() + "/" + tmp);
+            //playBG = playBG.Scale(width, width);
+            bgImage_[1] = wxBitmap(playBG.scale(board * 21, board * 21));
+        }
+
+        if (imagedir.getFirst(&tmp, "*chooseBG.*")) {
+            chooseBG.load(imagedir.getName() + "/" + tmp);
+            //chooseBG = chooseBG.Scale(width, width);
+            bgImage_[0] = wxBitmap(chooseBG.scale(board * 21, board * 21));
+        }
+
+        bg->setTheme(bgImage_);
+
+        if (sounddir.getFirst(&tmp, "beat.wav")) {
+            beatfile_ = sounddir.getName() + "/" + tmp;
+            Button::beatFile = beatfile_;
+            wxSound::Play(beatfile_);
+        }
+    }
+
     return;
 }
 
@@ -700,127 +671,77 @@ void Jubeta::convert()
     return;
 }
 
-
-
-void Jubeta::onTimer(wxTimerEvent& evt)
+void Jubeta::pressKey(int keycode)
 {
-    if (isstart) {
-        if (position_ != music->Time()) {
-            sync(music->Time());
-        }
-    }
-    else {
-        stop();
-    }
-    return;
-}
-
-
-
-
-void Jubeta::onIdle(wxIdleEvent& evt)
-{
-    //Switcher();
-    evt.RequestMore();
-    return;
-}
-
-
-
-void Jubeta::onLeftDown(wxMouseEvent& evt)
-{
-    if (status == S_PLAY && isstart) {
-        jump(evt.GetX());
-    }
-}
-
-
-
-void Jubeta::onLeftUp(wxMouseEvent& evt)
-{
-    if (status == S_PLAY) {
-    }
-}
-
-
-
-void Jubeta::onKey(wxKeyEvent& evt)
-{
-    int keycode = evt.GetKeyCode();
-
     switch (status) {
-        case S_WEL :
+    case S_WELCOME:
 
-            break;
+        break;
 
-        case S_CH :
+    case S_MENU:
 
-            if (keycode == WXK_ESCAPE) {
-                //status = S_WEL;
-            }
-            else if (keycode == key[15]) {
-                start();
-            }
-            else if (keycode == key[14]) {
-                status = S_OPT;
-                setOption();
-            }
-            else if (keycode == key[13]) {
-                shiftRight();
-            }
-            else if (keycode == key[12]) {
-                shiftLeft();
-            }
-            else {
-                for (int i = 0; i < 12; i++) {
-                    if (keycode == key[i]) {
-                        select(i);
-                        break;
-                    }
+        if (keycode == WXK_ESCAPE) {
+            //status = S_WELCOME;
+        }
+        else if (keycode == key[15]) {
+            start();
+        }
+        else if (keycode == key[14]) {
+            status = S_OPTION;
+            setOption();
+        }
+        else if (keycode == key[13]) {
+            shiftRight();
+        }
+        else if (keycode == key[12]) {
+            shiftLeft();
+        }
+        else {
+            for (int i = 0; i < 12; i++) {
+                if (keycode == key[i]) {
+                    select(i);
+                    break;
                 }
             }
+        }
 
-            break;
+        break;
 
-        case S_PLAY :
+    case S_PLAY :
 
-            if (isstart && keycode == WXK_SPACE) {
-                toggle();
-            }
-            else if (keycode == WXK_ESCAPE) {
-                if (isstart)
-                    stop();
-            }
-            else if (keycode == 'e' || keycode == 'E') {
-                //Finish();
-            }
-            else {
-                for (int i = 0; i < 16; i++) {
-                    if (keycode == key[i]) {
-                        if (status == S_PLAY)
-                            buttons[i]->press(music->Time());
+        if (isstart && keycode == WXK_SPACE) {
+            toggle();
+        }
+        else if (keycode == WXK_ESCAPE) {
+            if (isstart)
+                stop();
+        }
+        else if (keycode == 'e' || keycode == 'E') {
+            //Finish();
+        }
+        else {
+            for (int i = 0; i < 16; i++) {
+                if (keycode == key[i]) {
+                    if (status == S_PLAY)
+                        buttons[i]->press(music->Time());
 
-                        break;
-                    }
+                    break;
                 }
             }
+        }
 
-            break;
+        break;
 
-        case S_OPT :
+    case S_OPTION :
 
-            break;
+        break;
     }
 
     return;
 }
 
-
-
-void Jubeta::releaseKey(wxKeyEvent& evt)
+void Jubeta::releaseKey(int keycode)
 {
-    int keycode = evt.GetKeyCode();
-
     for (int i = 0; i < 16; i++) {
         if (keycode == key[i]) {
             buttons[i]->release();
@@ -831,22 +752,16 @@ void Jubeta::releaseKey(wxKeyEvent& evt)
     return;
 }
 
-
-
-void Jubeta::onAbout(wxCommandEvent& event)
+void Jubeta::onLeftDown(int x, int y)
 {
-    wxString tmp = "Jubeta Emulator" + VERSIONNO
-                   + "\nmade by LeoMao and Kevin00036"
-                   + "\npowered by wxWidgets 2.9 series.";
-    wxMessageBox(tmp, "About Jubeta");
-    return;
+    if (status == S_PLAY && isstart) {
+        jump(x);
+    }
 }
 
-
-
-void Jubeta::onQuit(wxCommandEvent& event)
+void Jubeta::onLeftUp(int x, int y)
 {
-    Close();
-    return;
+    if (status == S_PLAY) {
+    }
 }
 

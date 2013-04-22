@@ -1,3 +1,8 @@
+///////////////////////////////////////////////////////////
+// Filename:   jubeta.h
+// Maintainer: LeoMao
+///////////////////////////////////////////////////////////
+
 #ifndef JUBETA_H
 #define JUBETA_H
 
@@ -8,84 +13,72 @@
 #include "information.h"
 #include "background.h"
 
-#include <wx/wx.h>
-#include <wx/config.h>
-#include <wx/fileconf.h>
-#include <wx/string.h>
-#include <wx/mediactrl.h>
-#include <wx/stopwatch.h>
-#include <wx/fileconf.h>
+#include <jb/jb.h>
+#include <jb/string.h>
+#include <jb/image.h>
+#include <jb/panel.h>
 
-class Jubeta : public wxFrame
+// definition of class Jubeta
+class Jubeta : public jb::Panel
 {
 public:
     Jubeta();
-    virtual ~Jubeta();
-    //Jubeta (int width, int height, wxString, wxString, wxString);
-    //
-    void onKey(wxKeyEvent& evt);
-    void releaseKey(wxKeyEvent& evt);
+    ~Jubeta();
+
+    // event function
+    void pressKey(int keycode);
+    void releaseKey(int keycode);
+    void onLeftDown(int x, int y);
+    void onLeftUp(int x, int y);
 
 private:
-    BG* bg;
-    INF* inf;
-    wxBitmap bgImage_[2];
+    jb::Config* config_;
+    int height_;
+    int width_;
 
-    //wxMenuBar* menubar;
-    //wxMenu* fileMenu;
-    //wxMenu* optionMenu;
-    //wxMenuItem* openfileItem;
-    //wxMenuItem* convertItem;
-    //wxMenuItem* quitItem;
-    //wxMenuItem* optionItem;
+    Timer* sync_timer_;
+    BG* bg_;
+    jb::Image bg_image_[2];
 
-    wxFileConfig* config;
-    int height;
-    int width;
+    INF* inf_;
+    MusicBar* musicbar_;
 
-    wxTimer* syncTimer;
-    int position_;
-    int pointer;
-    bool ispaused;
-    bool isstart;
+    Button* buttons_[16];
+    int key_[20];
+    jb::Image marker_[80];
+    int side_;
+    int board_;
+    int outboard_;
+    int item_[16];
+    int item_position_;
+    int current_item_;
+    int current_place_;
+    jb::Image jackets_[16];
+    jb::Image no_jacket_;
+    jb::String beatfile_;
 
-    Music* music;
-    bool ismusic;
-    MusicBar* musicbar;
-
-    int key[20];
-    wxBitmap marker[80];
-    Button** buttons;
-    int side;
-    int board;
-    int outboard;
-
+    Song** songs_;
     Song* now_;
-    int maxIndex_;
+    Music* music_;
+    int song_count_;
+    int grid_count_;
+    int position_;
+    int pointer_;
+    bool is_paused_;
+    bool is_start_;
+    bool is_music_;
+    int max_index_;
 
-    int songCount;
-    int gridCount;
-    Song** songs;
-
-    int item[16];
-    int itemPosition;
-    int currentItem;
-    int currentPlace;
-
-    wxBitmap jackets[16];
-    wxBitmap noJacket;
-
-    wxString beatfile_;
-
-    void setMarker(wxString);
-    void setKey(int, int);
-    void setTheme(wxString);
+    void loadConfig();
+    void loadMarker();
+    void loadKey();
+    void loadTheme();
     void loadSongs();
 
     void welcome();
     void setUser();
 
-    void chooseSong();
+    void showMenu();
     void setItem();
     void shiftLeft();
     void shiftRight();
@@ -94,27 +87,22 @@ private:
     void start();
 
     void play();
-    void sync(int);
-    void jump(int);
-    void toggle(int);
+    void sync();
+    void jump(int position);
+    void toggle();
     void stop();
     void finish();
 
-    void setOption();
+    void showOptions();
+    void showMarkerOptions();
+    void showThemeOptions();
+    void showKeyOptions();
+    void setMarker(const jb::String&);
+    void setTheme(const jb::String&);
+    void setKey(int place, int keycode);
     void reloadSongs();
-    void modifyKey();
-    void changeMarker();
-    void changeBackground();
-    void changeTheme();
     void convert();
 
-    void onTimer(wxTimerEvent& evt);
-    void onIdle(wxIdleEvent& evt);
-    //void OnLoad (wxMediaEvent& evt);
-    void onLeftDown(wxMouseEvent& evt);
-    void onLeftUp(wxMouseEvent& evt);
-    void onAbout(wxCommandEvent& event);
-    void onQuit(wxCommandEvent& event);
 };
 
 #endif

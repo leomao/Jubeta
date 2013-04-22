@@ -1,6 +1,12 @@
+///////////////////////////////////////////////////////////
+// Filename:   wx/jb/object.h
+// Maintainer: LeoMao
+///////////////////////////////////////////////////////////
+
 #ifndef OBJECT_H
 #define OBJECT_H
 
+// definition of enum Jubeta_ID
 enum Jubeta_ID {
     ID_BUTTON1,
     ID_BUTTON2,
