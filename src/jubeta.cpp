@@ -27,18 +27,13 @@ Jubeta::Jubeta()
     key_ = {52, 53, 54, 55, 82, 84, 89, 85,
             70, 71, 72, 74, 86, 66, 78, 77
            };
-    // buttons_  = new Button*[16];
     songs_    = new Song*[1000];
     item_position_ = 0;
     current_item_  = -1;
     current_place_ = 0;
-    //
-    sync_timer_ = new Timer();
-    //
-    //music player
+    sync_timer_ = new Timer(this);
     music_ = new Music(this);
-    //
-    // Load Config
+
     config_ = new jb::Config("config");
 
     if (!config->read("width", &width_, width_))
@@ -46,21 +41,14 @@ Jubeta::Jubeta()
     if (!config->read("height", &height_, height_))
         config->write("height", height_);
 
-    setSize();
+    set_size();
 
-    for (int i = 0; i < 16; i++) {
-        string tmp = "b";
-        tmp += convertToString(i);
 
-        if (!config->read(tmp, &key_[i], ke_y[i]))
-            config->write(tmp, ke_y[i]);
-    }
-
-    wxSize  barsize;
-    wxPoint barpos;
-    wxSize  size;
-    wxPoint pos;
-    wxPoint tmp;
+    jb::Vector barsize;
+    jb::Vector barpos;
+    jb::Vector size;
+    jb::Vector pos;
+    jb::Vector tmp;
 
     if (width < height) {
         board = width / 21;
@@ -94,28 +82,20 @@ Jubeta::Jubeta()
         pos = wxPoint(width - buttonWidth, height - buttonWidth - 20);
     }
 
-    inf = new INF(this, wxPoint(0, 0), wxSize(0, 0));
-    bg = new BG(this, pos, wxSize(width, width));
+    inf = new Info(this, wxPoint(0, 0), wxSize(0, 0));
+    background_ = new BackGround(this, pos, wxSize(width, width));
     musicbar = new MusicBar(this, barpos, barsize);
 
     for (int i = 0; i < 16; i++) {
         tmp = wxPoint(outboard + (i % 4) * (side + board),
                       outboard + (i / 4) * (side + board));
-        buttons[i] = new Button(bg, i, tmp, size, marker, jackets,
-                                bgImage_, musicbar, &now_);
+        buttons[i] = new Button(background_, i, tmp, size, marker, jackets,
+                                background_Image_, musicbar, &now_);
     }
 
 
-    setMarker(markername);
-    jb::String themename;
-
-    // 設定Theme
-    if (!config->read("theme", &themename, "default"))
-        config->write("theme", "default");
-
-    setTheme(themename);
     config->update(); // update config file
-    loadSongs();
+    load_songs();
 
     welcome();
 
@@ -125,64 +105,70 @@ Jubeta::Jubeta()
 Jubeta::~Jubeta()
 {
     // Destructor
-    delete music_, sync_timer_, inf_, bg_, musicbar_, now_, config_;
+    delete music_, sync_timer_, info_;
+    delete background_, musicbar_, now_, config_;
     delete [] songs_;
 }
 
-void Jubeta::loadConfig()
-{
 
-}
-
-void Jubeta::loadMarker()
+void Jubeta::load_marker()
 {
     jb::String markername;
-
     // 設定Marker
     if (!config->read("marker", &markername, "default"))
         config->write("marker", "default");
+    set_marker(markername);
 }
 
-void Jubeta::loadKey()
+void Jubeta::load_key()
 {
+    for (int i = 0; i < 16; i++) {
+        string tmp = "b";
+        tmp += convert_to_string(i);
 
+        if (!config->read(tmp, &key_[i], key_[i]))
+            config->write(tmp, key_[i]);
+    }
 }
 
-void Jubeta::loadTheme()
+void Jubeta::load_theme()
 {
-
+    jb::String themename;
+    // 設定Theme
+    if (!config->read("theme", &themename, "default"))
+        config->write("theme", "default");
+    set_theme(themename);
 }
 
 
-void Jubeta::loadSongs()
+void Jubeta::load_songs()
 {
     jb::Dir songdir("songs");
 
-    if (!songdir.isOpened()) {
+    if (!songdir.is_opened()) {
         wxMessageBox("Fail to load Songs!!");
         this->close();
     }
     else {
-        songCount = 0; // 計算有幾首曲目
+        song_count_ = 0; // 計算有幾首曲目
         jb::String songname; //曲目名稱
         //一個一個 folder 檢查
-        bool cont = songdir.getFirst(&songname, "" , jb::Dir::DIRS);
+        bool cont = songdir.get_first(&songname, "" , jb::Dir::DIRS);
 
         while (cont) {
-            //wxPuts (songname); //debug用
-            songs[songCount] = new Song(songname);  // 加入曲目
+            songs[song_count_] = new Song(songname);  // 加入曲目
 
-            if (songs[songCount]->isOk())
-                songCount++; // 如果這個曲目是可用的，將計數器加一
+            if (songs[song_count_]->is_ok())
+                song_count_++; // 如果這個曲目是可用的，將計數器加一
 
-            cont = songdir.getNext(&songname);
+            cont = songdir.get_next(&songname);
         }
     }
-
-    if (songCount > 12)
-        gridCount = 3 * ((songCount - 1) / 3) + 3;
+    
+    if (song_count_ > 12)
+        grid_count_ = 3 * ((song_count_ - 1) / 3) + 3;
     else
-        gridCount = 12;
+        grid_count_ = 12;
 
     return;
 }
@@ -198,42 +184,42 @@ void Jubeta::welcome()
 
 
 
-void Jubeta::setUser()
+void Jubeta::set_user()
 {
     // 未加入此功能
 }
 
 
 
-void Jubeta::chooseSong()
+void Jubeta::show_menu()
 {
     status = S_MENU;
-    setItem(); // 設定選曲畫面的buttons
-    select(currentPlace);  // 預設選擇上次的曲目
+    set_item(); // 設定選曲畫面的buttons
+    select(current_place_);  // 預設選擇上次的曲目
     return;
 }
 
 
 
-void Jubeta::setItem()
+void Jubeta::set_item()
 {
-    if (itemPosition < 0)
-        itemPosition = gridCount + itemPosition;
+    if (item_position_ < 0)
+        item_position_ = grid_count_ + item_position_;
 
-    itemPosition %= gridCount;
-    item[0] = itemPosition;
+    item_position_ %= grid_count_;
+    item[0] = item_position_;
     item[4] = item[0] + 1;
     item[8] = item[4] + 1;
 
     for (int i = 0; i <= 8; i += 4) {
         for (int j = 1; j <= 3; j++) {
             item[i + j] = item[i] + 3 * j;
-            item[i + j] %= gridCount;
+            item[i + j] %= grid_count_;
         }
     }
 
     for (int i = 0; i < 12; i++) {
-        if (item[i] < songCount) {
+        if (item[i] < song_count_) {
             if (songs[item[i]]->getJacket() != "none") {
                 wxImage ojacket;
                 ojacket.LoadFile(songs[item[i]]->getJacket());
@@ -258,66 +244,66 @@ void Jubeta::setItem()
 
 
 
-void Jubeta::shiftLeft()
+void Jubeta::shift_left()
 {
-    itemPosition -= 3;
-    setItem();
+    item_position_ -= 3;
+    set_item();
 
-    if (currentPlace == -1) {
-        currentPlace = 4 * (currentItem % 3);
+    if (current_place_ == -1) {
+        current_place_ = 4 * (current_item_ % 3);
 
-        if (item[currentPlace] != currentItem)
-            currentPlace = -1;
+        if (item[current_place_] != current_item_)
+            current_place_ = -1;
         else
-            buttons[currentPlace]->choose(true);
+            buttons[current_place_]->choose(true);
     }
     else {
-        buttons[currentPlace]->choose(false);
+        buttons[current_place_]->choose(false);
 
-        if (currentPlace != 3 && currentPlace != 7 && currentPlace != 11) {
-            currentPlace++;
-            buttons[currentPlace]->choose(true);
+        if (current_place_ != 3 && current_place_ != 7 && current_place_ != 11) {
+            current_place_++;
+            buttons[current_place_]->choose(true);
         }
         else {
-            currentPlace = 4 * (currentPlace / 4);
+            current_place_ = 4 * (current_place_ / 4);
 
-            if (item[currentPlace] != currentItem)
-                currentPlace = -1;
+            if (item[current_place_] != current_item_)
+                current_place_ = -1;
             else
-                buttons[currentPlace]->choose(true);
+                buttons[current_place_]->choose(true);
         }
     }
 }
 
 
 
-void Jubeta::shiftRight()
+void Jubeta::shift_right()
 {
-    itemPosition += 3;
-    setItem();
+    item_position_ += 3;
+    set_item();
 
-    if (currentPlace == -1) {
-        currentPlace = 3 + 4 * (currentItem % 3);
+    if (current_place_ == -1) {
+        current_place_ = 3 + 4 * (current_item_ % 3);
 
-        if (item[currentPlace] != currentItem)
-            currentPlace = -1;
+        if (item[current_place_] != current_item_)
+            current_place_ = -1;
         else
-            buttons[currentPlace]->choose(true);
+            buttons[current_place_]->choose(true);
     }
     else {
-        buttons[currentPlace]->choose(false);
+        buttons[current_place_]->choose(false);
 
-        if (currentPlace != 0 && currentPlace != 4 && currentPlace != 8) {
-            currentPlace--;
-            buttons[currentPlace]->choose(true);
+        if (current_place_ != 0 && current_place_ != 4 && current_place_ != 8) {
+            current_place_--;
+            buttons[current_place_]->choose(true);
         }
         else {
-            currentPlace = 3 + 4 * (currentPlace / 4);
+            current_place_ = 3 + 4 * (current_place_ / 4);
 
-            if (item[currentPlace] != currentItem)
-                currentPlace = -1;
+            if (item[current_place_] != current_item_)
+                current_place_ = -1;
             else
-                buttons[currentPlace]->choose(true);
+                buttons[current_place_]->choose(true);
         }
     }
 }
@@ -328,15 +314,15 @@ void Jubeta::select(int button_i)
 {
     if (button_i >= 0 && button_i < 12) {
         if (buttons[button_i]->getCanChose()
-                && item[button_i] != currentItem) {
-            buttons[currentPlace]->choose(false);
+                && item[button_i] != current_item_) {
+            buttons[current_place_]->choose(false);
             buttons[button_i]->choose(true);
-            currentItem = item[button_i];
-            currentPlace = button_i;
+            current_item_ = item[button_i];
+            current_place_ = button_i;
             now_ = songs[item[button_i]];
 
-            maxIndex_ = now_->getMaxIndex();
-            setMusicBar(now_);
+            max_index_ = now_->getMaxIndex();
+            set_musicbar(now_);
             music->Load(now_);
         }
     }
@@ -346,10 +332,10 @@ void Jubeta::select(int button_i)
 
 
 
-void Jubeta::setMusicBar(Song* in)
+void Jubeta::set_musicbar(Song* in)
 {
-    musicbar->Set(in);
-    musicbar->Clean();
+    musicbar->set(in);
+    musicbar->clean();
     return;
 }
 
@@ -366,21 +352,21 @@ void Jubeta::start()
 
 void Jubeta::play()
 {
-    musicbar->Clean();
-    isstart = true;
+    musicbar->clean();
+    is_started_ = true;
     now_->reset();
-    pointer = 0;
+    pointer_ = 0;
     position_ = 0;
 
     for (int i = 0; i < 16; i++) {
         buttons[i]->stop();
     }
 
-    ispaused = false;
+    is_paused_ = false;
 
-    music->Stop();
-    music->Start();
-    syncTimer->Start(1);
+    music_->stop();
+    music_->start();
+    sync_timer_->start();
 
     return;
 }
@@ -392,7 +378,7 @@ void Jubeta::jump(int pixelPosition)
     toggle(-1);
     position_ = musicbar->jump(pixelPosition);
     music->jump(position_);
-    pointer =  now_->searchPointer(position_);
+    pointer_ =  now_->searchPointer(position_);
 }
 
 
@@ -403,7 +389,7 @@ void Jubeta::sync(int position)
 
     if (position_ - musicbar->GetNow() > 20 ||
             musicbar->GetNow() - position_ > 20) {
-        isstart = musicbar->NowRefresh(position_);
+        is_started_ = musicbar->NowRefresh(position_);
     }
 
     for (int i = 0; i < 16; i++) {
@@ -415,17 +401,17 @@ void Jubeta::sync(int position)
                now_->calculate(), now_->getNoteNumber());
     SetTitle(tmp);
 
-    if (!ispaused) {
-        while (pointer < maxIndex_ &&
-                now_->getPosition(pointer) <= position_) {
+    if (!is_paused_) {
+        while (pointer_ < max_index_ &&
+                now_->getPosition(pointer_) <= position_) {
             //printf("%d : ", pointer);
             for (int i = 0; i < 16; i++) {
-                if (now_->getNotes(i, pointer))
-                    buttons[i]->start(pointer,
-                                      now_->getPosition(pointer));
+                if (now_->getNotes(i, pointer_))
+                    buttons[i]->start(pointer_,
+                                      now_->getPosition(pointer_));
             }
 
-            pointer++;
+            pointer_++;
             //printf("\n");
         }
     }
@@ -437,8 +423,8 @@ void Jubeta::sync(int position)
 
 void Jubeta::toggle(int s = 0)
 {
-    if (s < 0 && !ispaused) {
-        ispaused = true;
+    if (s < 0 && !is_paused_) {
+        is_paused_ = true;
 
         music->Pause();
 
@@ -447,8 +433,8 @@ void Jubeta::toggle(int s = 0)
             buttons[i]->toggle();
         }
     }
-    else if (s > 0 && ispaused) {
-        ispaused = false;
+    else if (s > 0 && is_paused_) {
+        is_paused_ = false;
 
         music->Start();
 
@@ -459,7 +445,7 @@ void Jubeta::toggle(int s = 0)
         //syncTimer->Start();
     }
     else {
-        if (ispaused) {
+        if (is_paused_) {
             toggle(1);
         }
         else {
@@ -474,7 +460,7 @@ void Jubeta::toggle(int s = 0)
 
 void Jubeta::stop()
 {
-    isstart = false;
+    is_started_ = false;
     music->Stop();
     syncTimer->Stop();
     musicbar->Clean();
@@ -506,18 +492,34 @@ void Jubeta::finish()
 
 
 
-void Jubeta::setOption()
+void Jubeta::show_options()
 {
     //loadSongs();
-    //itemPosition = 0;
-    //currentPlace = 0;
+    //item_position_ = 0;
+    //current_place_ = 0;
     //chooseSong();
     status = S_MENU;
     return;
 }
 
 
-void Jubeta::setMarker(jb::String markername)
+void Jubeta::show_marker_options()
+{
+
+}
+
+void Jubeta::show_theme_options()
+{
+
+}
+
+void Jubeta::show_key_options()
+{
+
+}
+
+
+void Jubeta::set_marker(jb::String markername)
 {
     jb::Dir markerdir("marker/" + markername);
 
@@ -530,7 +532,7 @@ void Jubeta::setMarker(jb::String markername)
 
         for (int i = 0; i < 15; i++) {
             if (markerdir.getFirst(&tmp,
-                                   "*normal_" + convertToString(i)
+                                   "*normal_" + convert_to_string(i)
                                    + ".png")) {
                 marker[i].load(markerdir.getName() + "/" + tmp);
             }
@@ -538,7 +540,7 @@ void Jubeta::setMarker(jb::String markername)
 
         for (int i = 0; i < 7; i++) {
             if (markerdir.getFirst(&tmp,
-                                   "*normalpassed_" + convertToString(i)
+                                   "*normalpassed_" + convert_to_string(i)
                                    + ".png")) {
                 marker[15 + i].load(markerdir.getName() + "/" + tmp);
             }
@@ -546,7 +548,7 @@ void Jubeta::setMarker(jb::String markername)
 
         for (int i = 0; i < 15; i++) {
             if (markerdir.getFirst(&tmp,
-                                   "*perfect_" + convertToString(i)
+                                   "*perfect_" + convert_to_string(i)
                                    + ".png")) {
                 marker[22 + i].load(markerdir.getName() + "/" + tmp);
             }
@@ -554,7 +556,7 @@ void Jubeta::setMarker(jb::String markername)
 
         for (int i = 0; i < 15; i++) {
             if (markerdir.getFirst(&tmp,
-                                   "*great_" + convertToString(i)
+                                   "*great_" + convert_to_string(i)
                                    + ".png")) {
                 marker[37 + i].load(markerdir.getName() + "/" + tmp);
             }
@@ -562,7 +564,7 @@ void Jubeta::setMarker(jb::String markername)
 
         for (int i = 0; i < 14; i++) {
             if (markerdir.getFirst(&tmp,
-                                   "*good_" + convertToString(i)
+                                   "*good_" + convert_to_string(i)
                                    + ".png")) {
                 marker[52 + i].load(markerdir.getName() + "/" + tmp);
             }
@@ -570,7 +572,7 @@ void Jubeta::setMarker(jb::String markername)
 
         for (int i = 0; i < 13; i++) {
             if (markerdir.getFirst(&tmp,
-                                   "*bad_" + convertToString(i)
+                                   "*bad_" + convert_to_string(i)
                                    + ".png")) {
                 marker[66 + i].load(markerdir.getName() + "/" + tmp);
             }
@@ -589,14 +591,14 @@ void Jubeta::setMarker(jb::String markername)
 
 
 
-void Jubeta::setKey(int button, int keycode)
+void Jubeta::set_key(int button, int keycode)
 {
-    return;
+    key_[button] = keycode;
 }
 
 
 
-void Jubeta::setTheme(wxString theme)
+void Jubeta::set_theme(jb::String theme)
 {
     jb::Dir themedir("theme/" + theme);
     jb::Dir imagedir(themedir.getName() + "/images");
@@ -636,22 +638,22 @@ void Jubeta::setTheme(wxString theme)
             jackets[i] = wxBitmap(ojackets[i].scale(side, side));
         }
 
-        wxImage playBG;
-        wxImage chooseBG;
+        wxImage playbackground_;
+        wxImage choosebackground_;
 
-        if (imagedir.getFirst(&tmp, "*playBG.*")) {
-            playBG.load(imagedir.getName() + "/" + tmp);
-            //playBG = playBG.Scale(width, width);
-            bgImage_[1] = wxBitmap(playBG.scale(board * 21, board * 21));
+        if (imagedir.getFirst(&tmp, "*playbackground_.*")) {
+            playbackground_.load(imagedir.getName() + "/" + tmp);
+            //playbackground_ = playbackground_.Scale(width, width);
+            background_Image_[1] = wxBitmap(playbackground_.scale(board * 21, board * 21));
         }
 
-        if (imagedir.getFirst(&tmp, "*chooseBG.*")) {
-            chooseBG.load(imagedir.getName() + "/" + tmp);
-            //chooseBG = chooseBG.Scale(width, width);
-            bgImage_[0] = wxBitmap(chooseBG.scale(board * 21, board * 21));
+        if (imagedir.getFirst(&tmp, "*choosebackground_.*")) {
+            choosebackground_.load(imagedir.getName() + "/" + tmp);
+            //choosebackground_ = choosebackground_.Scale(width, width);
+            background_Image_[0] = wxBitmap(choosebackground_.scale(board * 21, board * 21));
         }
 
-        bg->setTheme(bgImage_);
+        background_->set_theme(background_Image_);
 
         if (sounddir.getFirst(&tmp, "beat.wav")) {
             beatfile_ = sounddir.getName() + "/" + tmp;
@@ -663,15 +665,20 @@ void Jubeta::setTheme(wxString theme)
     return;
 }
 
+void Jubeta::reload_songs()
+{
+    
+}
+
 
 
 void Jubeta::convert()
 {
-    Convert_sheet();
+    convert_sheet();
     return;
 }
 
-void Jubeta::pressKey(int keycode)
+void Jubeta::press_key(int keycode)
 {
     switch (status) {
     case S_WELCOME:
@@ -680,7 +687,7 @@ void Jubeta::pressKey(int keycode)
 
     case S_MENU:
 
-        if (keycode == WXK_ESCAPE) {
+        if (keycode == jb::K_ESCAPE) {
             //status = S_WELCOME;
         }
         else if (keycode == key[15]) {
@@ -709,11 +716,11 @@ void Jubeta::pressKey(int keycode)
 
     case S_PLAY :
 
-        if (isstart && keycode == WXK_SPACE) {
+        if (is_started_ && keycode == jb::K_ESCAPE) {
             toggle();
         }
-        else if (keycode == WXK_ESCAPE) {
-            if (isstart)
+        else if (keycode == jb::K_ESCAPE) {
+            if (is_started_)
                 stop();
         }
         else if (keycode == 'e' || keycode == 'E') {
@@ -740,7 +747,7 @@ void Jubeta::pressKey(int keycode)
     return;
 }
 
-void Jubeta::releaseKey(int keycode)
+void Jubeta::release_key(int keycode)
 {
     for (int i = 0; i < 16; i++) {
         if (keycode == key[i]) {
@@ -752,14 +759,14 @@ void Jubeta::releaseKey(int keycode)
     return;
 }
 
-void Jubeta::onLeftDown(int x, int y)
+void Jubeta::on_left_down(int x, int y)
 {
-    if (status == S_PLAY && isstart) {
+    if (status == S_PLAY && is_started_) {
         jump(x);
     }
 }
 
-void Jubeta::onLeftUp(int x, int y)
+void Jubeta::on_left_up(int x, int y)
 {
     if (status == S_PLAY) {
     }

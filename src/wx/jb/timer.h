@@ -20,8 +20,9 @@ public:
     bool start(int interval);
     void stop();
     bool toggle();
-    bool isRunning();
+    bool is_running();
     virtual void tick();
+
     void Notify();
 
 private:

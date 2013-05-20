@@ -25,24 +25,24 @@ MainFrame::~MainFrame()
 void MainFrame::pressKey(wxKeyEvent& evt)
 {
     int keycode = evt.GetKeyCode();
-    jubeta_->pressKey(keycode);
+    jubeta_->press_key(keycode);
 }
 
 // pass the keycode to jubeta's releasekey function
 void mainframe::releasekey(wxkeyevent& evt)
 {
     int keycode = evt.GetKeyCode();
-    jubeta_->releaseKey(keycode);
+    jubeta_->release_key(keycode);
 }
 
 // pass the position of the click to jubeta's onLeftDown function
 void MainFrame::onLeftDown(wxMouseEvent& evt)
 {
-    jubeta_->onLeftDown(evt.GetX(), evt.GetY());
+    jubeta_->on_left_down(evt.GetX(), evt.GetY());
 }
 
 // pass the position of the click to jubeta's onLeftUp function
 void MainFrame::onLeftUp(wxMouseEvent& evt)
 {
-    jubeta_->onLeftUp(evt.GetX(), evt.GetY());
+    jubeta_->on_left_up(evt.GetX(), evt.GetY());
 }

@@ -21,10 +21,10 @@ public:
     bool open();
     bool open(const String& filename);
     bool create(const String& filename);
-    bool isOpened();
+    bool is_opened();
     bool first();
     bool next();
-    bool eof();
+    bool is_eof();
     void seek(size_t line);
     String& get(size_t line);
     const String& get(size_t line) const;

@@ -18,9 +18,9 @@ public:
     Sound(const String& filename);
     ~Sound();
     bool load(const String& filename);
-    bool isOk();
-    bool setOffset(int position);
-    int getOffset();
+    bool is_ok();
+    bool set_offset(int position);
+    int get_offset();
     bool play();
     bool stop();
     bool toggle();

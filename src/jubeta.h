@@ -26,10 +26,11 @@ public:
     ~Jubeta();
 
     // event function
-    void pressKey(int keycode);
-    void releaseKey(int keycode);
-    void onLeftDown(int x, int y);
-    void onLeftUp(int x, int y);
+    void press_key(int keycode);
+    void release_key(int keycode);
+    void on_left_down(int x, int y);
+    void on_left_up(int x, int y);
+    void sync();
 
 private:
     jb::Config* config_;
@@ -37,14 +38,14 @@ private:
     int width_;
 
     Timer* sync_timer_;
-    BG* bg_;
+    BackGround* background_;
     jb::Image bg_image_[2];
 
-    INF* inf_;
+    Info* info_;
     MusicBar* musicbar_;
 
     Button* buttons_[16];
-    int key_[20];
+    int key_[16];
     jb::Image marker_[80];
     int side_;
     int board_;
@@ -65,42 +66,41 @@ private:
     int position_;
     int pointer_;
     bool is_paused_;
-    bool is_start_;
+    bool is_started_;
     bool is_music_;
     int max_index_;
 
-    void loadConfig();
-    void loadMarker();
-    void loadKey();
-    void loadTheme();
-    void loadSongs();
+    void load_config();
+    void load_marker();
+    void load_key();
+    void load_theme();
+    void load_songs();
 
     void welcome();
-    void setUser();
+    void set_user();
 
-    void showMenu();
-    void setItem();
-    void shiftLeft();
-    void shiftRight();
+    void show_menu();
+    void set_item();
+    void shift_left();
+    void shift_right();
     void select(int);
-    void setMusicBar(Song*);
+    void set_musicbar(Song*);
     void start();
 
     void play();
-    void sync();
     void jump(int position);
     void toggle();
     void stop();
     void finish();
 
-    void showOptions();
-    void showMarkerOptions();
-    void showThemeOptions();
-    void showKeyOptions();
-    void setMarker(const jb::String&);
-    void setTheme(const jb::String&);
-    void setKey(int place, int keycode);
-    void reloadSongs();
+    void show_options();
+    void show_marker_options();
+    void show_theme_options();
+    void show_key_options();
+    void set_marker(const jb::String&);
+    void set_theme(const jb::String&);
+    void set_key(int place, int keycode);
+    void reload_songs();
     void convert();
 
 };

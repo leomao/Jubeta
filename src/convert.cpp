@@ -133,7 +133,7 @@ inline string Iconv_SJIS(bool isSJIS, string input)
     return input;
 }
 
-void Convert_sheet()
+void convert_sheet()
 {
     wxDir* songs = new wxDir(_("convert"));
 

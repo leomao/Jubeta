@@ -28,16 +28,16 @@ public:
     bool open(const String& dir);
     bool open(const char* dir);
     bool open(const std::string& dir);
-    bool getFirst(String* filename, const String& spec, Type type);
-    bool getFirst(String* filename, const char* spec, Type type);
-    bool getFirst(String* filename, const std::string& spec, Type type);
-    bool getNext(String* filename);
+    bool get_first(String* filename, const String& spec, Type type);
+    bool get_first(String* filename, const char* spec, Type type);
+    bool get_first(String* filename, const std::string& spec, Type type);
+    bool get_next(String* filename);
     void close();
-    bool isOpened();
+    bool is_opened();
 
-    static isDir(const String& dir);
-    static isDir(const char* dir);
-    static isDir(const std::string& dir);
+    static is_dir(const String& dir);
+    static is_dir(const char* dir);
+    static is_dir(const std::string& dir);
 
 private:
     wxDir dir_;

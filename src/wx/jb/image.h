@@ -23,7 +23,7 @@ public:
     bool load(const String& filename);
     bool load(const char* filename);
     bool load(const std::string filename);
-    bool isOk();
+    bool is_ok();
     Image scale(int width, int height) const;
 
 private:

@@ -1,4 +1,4 @@
-Jubeta
+Jubeta dev
 ======
 
 Jubeat Emulator
@@ -11,3 +11,6 @@ Stable Version: 0.1.3
 
 誠徵合作夥伴幫忙 Windows 下的編譯 & 除錯
 
+
+Rewriting Code ...
+不能編譯

@@ -10,6 +10,7 @@
 namespace jb
 {
     enum Status{S_WELCOME, S_MENU, S_PLAY, S_OPTION} status;
+    class Vector;
     class String;
     class Dir;
     class TextFile;

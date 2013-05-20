@@ -5,6 +5,6 @@
 #include <wx/dir.h>
 #include <wx/encconv.h>
 
-void Convert_sheet();
+void convert_sheet();
 
 #endif

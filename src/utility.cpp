@@ -5,7 +5,7 @@
 
 using namespace std;
 
-int convertToInt(wxString str)
+int convert_to_int(wxString str)
 {
     long tmp;
     str.ToLong(&tmp);
@@ -13,7 +13,7 @@ int convertToInt(wxString str)
     return out;
 }
 
-string convertToString(int num)
+string convert_to_string(int num)
 {
     string out = "";
     bool sgn = false;
