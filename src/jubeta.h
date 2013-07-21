@@ -12,6 +12,7 @@
 #include "musicbar.h"
 #include "information.h"
 #include "background.h"
+#include "timer.h"
 
 #include <jb/jb.h>
 #include <jb/string.h>
@@ -51,7 +52,7 @@ private:
     int board_;
     int outboard_;
     int item_[16];
-    int item_position_;
+    int item_offset_;
     int current_item_;
     int current_place_;
     jb::Image jackets_[16];
@@ -70,6 +71,7 @@ private:
     bool is_music_;
     int max_index_;
 
+    void layout();
     void load_config();
     void load_marker();
     void load_key();

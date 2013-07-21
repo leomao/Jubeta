@@ -27,11 +27,11 @@ Jubeta::Jubeta()
     key_ = {52, 53, 54, 55, 82, 84, 89, 85,
             70, 71, 72, 74, 86, 66, 78, 77
            };
-    songs_    = new Song*[1000];
-    item_position_ = 0;
+    songs_ = new Song*[1000];
+    item_offset_ = 0;
     current_item_  = -1;
     current_place_ = 0;
-    sync_timer_ = new Timer(this);
+    sync_timer_ = new Timer(&Jubeta::sync, this);
     music_ = new Music(this);
 
     config_ = new jb::Config("config");
@@ -40,9 +40,6 @@ Jubeta::Jubeta()
         config->write("width", width_);
     if (!config->read("height", &height_, height_))
         config->write("height", height_);
-
-    set_size();
-
 
     jb::Vector barsize;
     jb::Vector barpos;
@@ -55,7 +52,7 @@ Jubeta::Jubeta()
         outboard = (width - board * 19) / 2;
         side = 4 * board;
         size = wxSize(side, side);
-        pos = wxPoint(0, height - width - 20);
+        pos = wxPoint(0, height - width);
         int x = width / 120;
         x -= 1;
         x *= 120;
@@ -79,16 +76,16 @@ Jubeta::Jubeta()
         x = width - buttonWidth + (buttonWidth - x) / 2;
         barpos = wxPoint(x, y);
         size = wxSize(side, side);
-        pos = wxPoint(width - buttonWidth, height - buttonWidth - 20);
+        pos = wxPoint(width - buttonWidth, height - buttonWidth);
     }
 
-    inf = new Info(this, wxPoint(0, 0), wxSize(0, 0));
+    inf = new Info(this, jb::Vector(0, 0), jb::Vector(0, 0));
     background_ = new BackGround(this, pos, wxSize(width, width));
     musicbar = new MusicBar(this, barpos, barsize);
 
     for (int i = 0; i < 16; i++) {
-        tmp = wxPoint(outboard + (i % 4) * (side + board),
-                      outboard + (i / 4) * (side + board));
+        tmp = jb::Vector(outboard + (i % 4) * (side + board),
+                         outboard + (i / 4) * (side + board));
         buttons[i] = new Button(background_, i, tmp, size, marker, jackets,
                                 background_Image_, musicbar, &now_);
     }
@@ -110,6 +107,15 @@ Jubeta::~Jubeta()
     delete [] songs_;
 }
 
+void Jubeta::layout()
+{
+    if (width_ < height_) {
+        
+    }
+    else {
+
+    }
+}
 
 void Jubeta::load_marker()
 {
@@ -203,11 +209,11 @@ void Jubeta::show_menu()
 
 void Jubeta::set_item()
 {
-    if (item_position_ < 0)
-        item_position_ = grid_count_ + item_position_;
+    if (item_offset_ < 0)
+        item_offset_ = grid_count_ + item_offset_;
 
-    item_position_ %= grid_count_;
-    item[0] = item_position_;
+    item_offset_ %= grid_count_;
+    item[0] = item_offset_;
     item[4] = item[0] + 1;
     item[8] = item[4] + 1;
 
@@ -220,21 +226,18 @@ void Jubeta::set_item()
 
     for (int i = 0; i < 12; i++) {
         if (item[i] < song_count_) {
-            if (songs[item[i]]->getJacket() != "none") {
-                wxImage ojacket;
-                ojacket.LoadFile(songs[item[i]]->getJacket());
-                jackets[i] = wxBitmap(ojacket.Scale(side * 0.85,
-                                                    side * 0.85));
+            if (songs[item[i]]->get_jacket() != "none") {
+                jackets[i].load(songs[item[i]]->get_jacket());
             }
             else {
                 jackets[i] = noJacket;
             }
 
-            buttons[i]->setCanChose(true, songs[item[i]]);
+            buttons[i]->set_choosable(true, songs[item[i]]);
         }
         else {
             Song* noSong;
-            buttons[i]->setCanChose(false, noSong);
+            buttons[i]->set_choosable(false, noSong);
         }
     }
 
@@ -246,7 +249,7 @@ void Jubeta::set_item()
 
 void Jubeta::shift_left()
 {
-    item_position_ -= 3;
+    item_offset_ -= 3;
     set_item();
 
     if (current_place_ == -1) {
@@ -260,7 +263,8 @@ void Jubeta::shift_left()
     else {
         buttons[current_place_]->choose(false);
 
-        if (current_place_ != 3 && current_place_ != 7 && current_place_ != 11) {
+        if (current_place_ != 3 && current_place_ != 7 &&
+                current_place_ != 11) {
             current_place_++;
             buttons[current_place_]->choose(true);
         }
@@ -279,7 +283,7 @@ void Jubeta::shift_left()
 
 void Jubeta::shift_right()
 {
-    item_position_ += 3;
+    item_offset_ += 3;
     set_item();
 
     if (current_place_ == -1) {
@@ -293,7 +297,8 @@ void Jubeta::shift_right()
     else {
         buttons[current_place_]->choose(false);
 
-        if (current_place_ != 0 && current_place_ != 4 && current_place_ != 8) {
+        if (current_place_ != 0 && current_place_ != 4 &&
+                current_place_ != 8) {
             current_place_--;
             buttons[current_place_]->choose(true);
         }
@@ -313,17 +318,17 @@ void Jubeta::shift_right()
 void Jubeta::select(int button_i)
 {
     if (button_i >= 0 && button_i < 12) {
-        if (buttons[button_i]->getCanChose()
-                && item[button_i] != current_item_) {
+        if (buttons[button_i]->get_choosable() &&
+                item[button_i] != current_item_) {
             buttons[current_place_]->choose(false);
             buttons[button_i]->choose(true);
             current_item_ = item[button_i];
             current_place_ = button_i;
             now_ = songs[item[button_i]];
 
-            max_index_ = now_->getMaxIndex();
+            max_index_ = now_->get_max_index();
             set_musicbar(now_);
-            music->Load(now_);
+            music->load(now_);
         }
     }
 
@@ -378,7 +383,7 @@ void Jubeta::jump(int pixelPosition)
     toggle(-1);
     position_ = musicbar->jump(pixelPosition);
     music->jump(position_);
-    pointer_ =  now_->searchPointer(position_);
+    pointer_ =  now_->search_pointer(position_);
 }
 
 
@@ -387,28 +392,28 @@ void Jubeta::sync(int position)
 {
     position_ = position;
 
-    if (position_ - musicbar->GetNow() > 20 ||
-            musicbar->GetNow() - position_ > 20) {
-        is_started_ = musicbar->NowRefresh(position_);
+    if (position_ - musicbar->get_now() > 20 ||
+            musicbar->get_now() - position_ > 20) {
+        is_started_ = musicbar->now_refresh(position_);
     }
 
     for (int i = 0; i < 16; i++) {
-        buttons[i]->runMarker(position_);
+        buttons[i]->sync(position_);
     }
 
-    wxString tmp;
-    tmp.Printf("Jubeta - Score : %d Notes : %d",
-               now_->calculate(), now_->getNoteNumber());
-    SetTitle(tmp);
+    // wxString tmp;
+    // tmp.Printf("Jubeta - Score : %d Notes : %d",
+               // now_->calculate(), now_->getNoteNumber());
+    // SetTitle(tmp);
 
     if (!is_paused_) {
         while (pointer_ < max_index_ &&
-                now_->getPosition(pointer_) <= position_) {
+                now_->get_position(pointer_) <= position_) {
             //printf("%d : ", pointer);
             for (int i = 0; i < 16; i++) {
-                if (now_->getNotes(i, pointer_))
+                if (now_->get_notes(i, pointer_))
                     buttons[i]->start(pointer_,
-                                      now_->getPosition(pointer_));
+                                      now_->get_position(pointer_));
             }
 
             pointer_++;
@@ -426,7 +431,7 @@ void Jubeta::toggle(int s = 0)
     if (s < 0 && !is_paused_) {
         is_paused_ = true;
 
-        music->Pause();
+        music->pause();
 
         //syncTimer->Stop();
         for (int i = 0; i < 16; i++) {
@@ -436,7 +441,7 @@ void Jubeta::toggle(int s = 0)
     else if (s > 0 && is_paused_) {
         is_paused_ = false;
 
-        music->Start();
+        music->start();
 
         for (int i = 0; i < 16; i++) {
             buttons[i]->toggle();
@@ -461,9 +466,9 @@ void Jubeta::toggle(int s = 0)
 void Jubeta::stop()
 {
     is_started_ = false;
-    music->Stop();
-    syncTimer->Stop();
-    musicbar->Clean();
+    music->stop();
+    syncTimer->stop();
+    musicbar->clean();
     status = S_MENU;
     chooseSong();
     return;
@@ -473,20 +478,20 @@ void Jubeta::stop()
 
 void Jubeta::finish()
 {
-    wxString out;
-    out.Printf("Score : %d\n\
-                Perfect : %d\n\
-                Great : %d\n\
-                Good : %d\n\
-                Poor : %d\n\
-                Miss : %d\n",
-               now_->calculate(),
-               now_->perfect,
-               now_->great,
-               now_->good,
-               now_->poor,
-               now_->miss);
-    wxMessageBox(out, "Score");
+    // wxString out;
+    // out.Printf("Score : %d\n\
+                // Perfect : %d\n\
+                // Great : %d\n\
+                // Good : %d\n\
+                // Poor : %d\n\
+                // Miss : %d\n",
+               // now_->calculate(),
+               // now_->perfect,
+               // now_->great,
+               // now_->good,
+               // now_->poor,
+               // now_->miss);
+    // wxMessageBox(out, "Score");
     return;
 }
 
@@ -495,7 +500,7 @@ void Jubeta::finish()
 void Jubeta::show_options()
 {
     //loadSongs();
-    //item_position_ = 0;
+    //item_offset_ = 0;
     //current_place_ = 0;
     //chooseSong();
     status = S_MENU;
@@ -523,7 +528,7 @@ void Jubeta::set_marker(jb::String markername)
 {
     jb::Dir markerdir("marker/" + markername);
 
-    if (!markerdir.isOpened()) {
+    if (!markerdir.is_opened()) {
         wxMessageBox("Fail to load Marker!!");
         // this->close();
     }
@@ -531,55 +536,55 @@ void Jubeta::set_marker(jb::String markername)
         wxString tmp;
 
         for (int i = 0; i < 15; i++) {
-            if (markerdir.getFirst(&tmp,
+            if (markerdir.get_first(&tmp,
                                    "*normal_" + convert_to_string(i)
                                    + ".png")) {
-                marker[i].load(markerdir.getName() + "/" + tmp);
+                marker[i].load(markerdir.get_name() + "/" + tmp);
             }
         }
 
         for (int i = 0; i < 7; i++) {
-            if (markerdir.getFirst(&tmp,
+            if (markerdir.get_first(&tmp,
                                    "*normalpassed_" + convert_to_string(i)
                                    + ".png")) {
-                marker[15 + i].load(markerdir.getName() + "/" + tmp);
+                marker[15 + i].load(markerdir.get_name() + "/" + tmp);
             }
         }
 
         for (int i = 0; i < 15; i++) {
-            if (markerdir.getFirst(&tmp,
+            if (markerdir.get_first(&tmp,
                                    "*perfect_" + convert_to_string(i)
                                    + ".png")) {
-                marker[22 + i].load(markerdir.getName() + "/" + tmp);
+                marker[22 + i].load(markerdir.get_name() + "/" + tmp);
             }
         }
 
         for (int i = 0; i < 15; i++) {
-            if (markerdir.getFirst(&tmp,
+            if (markerdir.get_first(&tmp,
                                    "*great_" + convert_to_string(i)
                                    + ".png")) {
-                marker[37 + i].load(markerdir.getName() + "/" + tmp);
+                marker[37 + i].load(markerdir.get_name() + "/" + tmp);
             }
         }
 
         for (int i = 0; i < 14; i++) {
-            if (markerdir.getFirst(&tmp,
+            if (markerdir.get_first(&tmp,
                                    "*good_" + convert_to_string(i)
                                    + ".png")) {
-                marker[52 + i].load(markerdir.getName() + "/" + tmp);
+                marker[52 + i].load(markerdir.get_name() + "/" + tmp);
             }
         }
 
         for (int i = 0; i < 13; i++) {
-            if (markerdir.getFirst(&tmp,
+            if (markerdir.get_first(&tmp,
                                    "*bad_" + convert_to_string(i)
                                    + ".png")) {
-                marker[66 + i].load(markerdir.getName() + "/" + tmp);
+                marker[66 + i].load(markerdir.get_name() + "/" + tmp);
             }
         }
 
-        markerdir.getFirst(&tmp, "*prev.png");
-        marker[79].load(markerdir.getName() + "/" + tmp, format);
+        markerdir.get_first(&tmp, "*prev.png");
+        marker[79].load(markerdir.get_name() + "/" + tmp, format);
 
         for (int i = 0; i < 79; i++) {
             marker[i] = marker[i].scale(side, side);
@@ -601,64 +606,48 @@ void Jubeta::set_key(int button, int keycode)
 void Jubeta::set_theme(jb::String theme)
 {
     jb::Dir themedir("theme/" + theme);
-    jb::Dir imagedir(themedir.getName() + "/images");
-    jb::Dir sounddir(themedir.getName() + "/sounds");
+    jb::Dir imagedir(themedir.get_name() + "/images");
+    jb::Dir sounddir(themedir.get_name() + "/sounds");
 
-    if (!imagedir.isOpened() || !sounddir.isOpened()) {
+    if (!imagedir.is_opened() || !sounddir.is_opened()) {
         wxMessageBox("Fail to Load Theme!!");
         this->close();
     }
     else {
         wxImage ojackets[16];
-        wxImage onoJacket;
         wxString tmp;
 
-        if (imagedir.getFirst(&tmp, "*LArrow.*"))
-            ojackets[12].load(imagedir.getName() + "/" + tmp);
+        if (imagedir.get_first(&tmp, "*LArrow.*"))
+            jackets[12].load(imagedir.get_name() + "/" + tmp);
 
-        if (imagedir.getFirst(&tmp, "*RArrow.*"))
-            ojackets[13].load(imagedir.getName() + "/" + tmp);
+        if (imagedir.get_first(&tmp, "*RArrow.*"))
+            jackets[13].load(imagedir.get_name() + "/" + tmp);
 
-        if (imagedir.getFirst(&tmp, "*Option.*"))
-            ojackets[14].load(imagedir.getName() + "/" + tmp);
+        if (imagedir.get_first(&tmp, "*Option.*"))
+            jackets[14].load(imagedir.get_name() + "/" + tmp);
 
-        if (imagedir.getFirst(&tmp, "*Start.*"))
-            ojackets[15].load(imagedir.getName() + "/" + tmp);
+        if (imagedir.get_first(&tmp, "*Start.*"))
+            jackets[15].load(imagedir.get_name() + "/" + tmp);
 
-        if (imagedir.getFirst(&tmp, "*NoJacket.*"))
-            onoJacket.load(imagedir.getName() + "/" + tmp);
-
-        noJacket = wxBitmap(onoJacket.scale(side * 0.85, side * 0.85));
+        if (imagedir.get_first(&tmp, "*NoJacket.*"))
+            no_jacket_.load(imagedir.get_name() + "/" + tmp);
 
         for (int i = 0; i < 12; i++) {
-            jackets[i] = noJacket;
+            jackets[i] = no_jacket_;
         }
 
-        for (int i = 12; i < 16; i++) {
-            jackets[i] = wxBitmap(ojackets[i].scale(side, side));
+        if (imagedir.get_first(&tmp, "*playbackground_.*")) {
+            bg_image_[1].load(imagedir.get_name() + "/" + tmp);
         }
 
-        wxImage playbackground_;
-        wxImage choosebackground_;
-
-        if (imagedir.getFirst(&tmp, "*playbackground_.*")) {
-            playbackground_.load(imagedir.getName() + "/" + tmp);
-            //playbackground_ = playbackground_.Scale(width, width);
-            background_Image_[1] = wxBitmap(playbackground_.scale(board * 21, board * 21));
+        if (imagedir.get_first(&tmp, "*choosebackground_.*")) {
+            bg_image_[0].load(imagedir.get_name() + "/" + tmp);
         }
 
-        if (imagedir.getFirst(&tmp, "*choosebackground_.*")) {
-            choosebackground_.load(imagedir.getName() + "/" + tmp);
-            //choosebackground_ = choosebackground_.Scale(width, width);
-            background_Image_[0] = wxBitmap(choosebackground_.scale(board * 21, board * 21));
-        }
+        background_->set_theme(bg_image_);
 
-        background_->set_theme(background_Image_);
-
-        if (sounddir.getFirst(&tmp, "beat.wav")) {
-            beatfile_ = sounddir.getName() + "/" + tmp;
-            Button::beatFile = beatfile_;
-            wxSound::Play(beatfile_);
+        if (sounddir.get_first(&tmp, "beat.wav")) {
+            beatfile_ = sounddir.get_name() + "/" + tmp;
         }
     }
 
@@ -695,13 +684,13 @@ void Jubeta::press_key(int keycode)
         }
         else if (keycode == key[14]) {
             status = S_OPTION;
-            setOption();
+            set_option();
         }
         else if (keycode == key[13]) {
-            shiftRight();
+            shift_right();
         }
         else if (keycode == key[12]) {
-            shiftLeft();
+            shift_left();
         }
         else {
             for (int i = 0; i < 12; i++) {
@@ -730,7 +719,7 @@ void Jubeta::press_key(int keycode)
             for (int i = 0; i < 16; i++) {
                 if (keycode == key[i]) {
                     if (status == S_PLAY)
-                        buttons[i]->press(music->Time());
+                        buttons[i]->press(music->time());
 
                     break;
                 }

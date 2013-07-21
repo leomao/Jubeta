@@ -16,6 +16,7 @@ class jb::Sound
 public:
     Sound();
     Sound(const String& filename);
+    Sound(const Sound&);
     ~Sound();
     bool load(const String& filename);
     bool is_ok();

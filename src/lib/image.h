@@ -6,8 +6,6 @@
 #ifndef JB_IMAGE_H
 #define IB_IMAGE_H
 
-#include <string>
-
 #include <jb/jb.h>
 #include <jb/string.h>
 
@@ -19,6 +17,7 @@ public:
     Image(const String& filename);
     Image(const char* filename);
     Image(const std::string filename);
+    Image(const Image&);
     ~Image();
     bool load(const String& filename);
     bool load(const char* filename);

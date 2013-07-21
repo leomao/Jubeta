@@ -3,10 +3,6 @@
 #include "status.h"
 #include "object.h"
 
-#include <wx/wx.h>
-#include <wx/dir.h>
-#include <wx/dcbuffer.h>
-
 using namespace std;
 
 BG::BG(wxWindow* parent, wxPoint bgpos, wxSize bgsize)

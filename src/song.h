@@ -7,7 +7,7 @@ class Song
 {
 public:
     Song();
-    Song(wxString name);
+    Song(jb::String name);
     ~Song();
 
     int perfect;
@@ -17,28 +17,28 @@ public:
     int miss;
 
     void reset();
-    int searchPointer(int);
-    int getPosition(int);
-    bool getNotes(int, int);
+    int search_pointer(int);
+    int get_position(int);
+    bool get_notes(int, int);
     int judge(int, int, int);
     int calculate();
-    int getLength();
-    int getMaxIndex();
-    int getNoteNumber();
-    int* getMusicBar();
-    wxString getMusic();
-    wxString getTitle();
-    wxString getJacket();
-    bool isOk();
+    int get_length();
+    int get_max_index();
+    int get_note_number();
+    int* get_musicbar();
+    jb::String get_music();
+    jb::String get_title();
+    jb::String get_jacket();
+    bool is_ok();
 
 private:
-    bool isOk_;
+    bool is_ok_;
     bool* notes_;
     int* position_;
-    int* positionInBar_;
+    int* position_in_bar_;
     int lev_;
     int dif_;
-    int highScore_;
+    int highscore_;
 
     wxString title_;
     wxString artist_;
@@ -46,14 +46,14 @@ private:
     wxString jacket_;
 
     int length_;
-    int maxIndex_;
-    int noteNumber_;
+    int max_index_;
+    int note_number_;
     int* musicbar_;
 
     int* judge_;
 
 };
 
-bool levelCompare(Song*, Song*);
+bool level_compare(Song*, Song*);
 
 #endif

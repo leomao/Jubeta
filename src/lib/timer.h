@@ -8,11 +8,8 @@
 
 #include <jb/jb.h>
 
-#include <wx/wx.h>
-#include <wx/timer.h>
-
 // definition of class jb::Timer
-class jb::Timer : public wxTimer
+class jb::Timer
 {
 public:
     Timer();
@@ -22,8 +19,6 @@ public:
     bool toggle();
     bool is_running();
     virtual void tick();
-
-    void Notify();
 
 private:
     bool is_started_;

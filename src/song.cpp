@@ -5,44 +5,43 @@
 
 #include "song.h"
 #include "utility.h" 
-#include <wx/wx.h>
-#include <wx/dir.h>
-#include <wx/textfile.h>
+#include <jb/jb.h>
+#include <jb/dir.h>
+#include <jb/textfile.h>
 
 Song::Song()
 {
-    isOk_ = false;
+    is_ok_ = false;
 }
 
-Song::Song(wxString name)
+Song::Song(jb::String name)
 {
     position_ = new int[10000];
-    positionInBar_ = new int[10000];
+    position_in_bar_ = new int[10000];
     int* onotes = new int[160000];
     jacket_ = "none";
     music_ = "none";
-    maxIndex_ = 0;
-    isOk_ = false;
-    highScore_ = 0;
-    wxString foldername = ("songs/" + name);
-    wxString filename;
-    wxDir* folder = new wxDir(foldername);
+    max_index_ = 0;
+    is_ok_ = false;
+    highscore_ = 0;
+    jb::String foldername = ("songs/" + name);
+    jb::String filename;
+    jb::Dir* folder = new wxDir(foldername);
 
-    if (!folder->IsOpened()) {
+    if (!folder->is_opened()) {
         wxMessageBox("Failed to load " + foldername);
         return;
     }
-    else if (!folder->GetFirst(&filename, "*.txt", wxDIR_DEFAULT)) {
+    else if (!folder->get_first(&filename, "*.txt", jb::Dir::FILES)) {
         wxMessageBox("Failed to load File in " + foldername);
         return;
     }
 
-    isOk_ = true;
+    is_ok_ = true;
 
-    wxTextFile song(foldername + "/" + filename);
-    song.Open();
+    jb::TextFile song(foldername + "/" + filename);
+    song.open();
     bool notesstart = false;
-    wxString tmp; // 讀檔字串
     int tempo = 60; // 預設tempo
     //tposition 為變速那拍的位置
     //tindex 變速後重算的 index
@@ -52,97 +51,94 @@ Song::Song(wxString name)
     int tposition(0), tindex(0);
     int position(0), index(0), delay(0);
 
-    for (tmp = song.GetFirstLine();
-            !song.Eof(); tmp = song.GetNextLine()) {
-        if (tmp[0] == 't') {
+    jb::String line, tmp; // 讀檔字串
+    line = song.first();
+    while (!song.is_eof()) {
+        if (line[0] == 't') {
             // 設定tempo
-            wxString tt = tmp.AfterFirst('=');
-            tempo = convertToInt(tt);
+            tempo = line.after_first('=').to_int();
         }
-        else if (tmp[0] == 'm') {
-            wxString tt = tmp.AfterFirst('=');
+        else if (line[0] == 'm') {
+            tmp = line.after_first('=');
+            if (folder->find(tmp))
+                music_ = foldername + "/" + tmp;
+        }
+        else if (line[0] == 'j') {
+            tmp = line.after_first('=');
+            if (folder->find(tmp))
+                jacket_ = foldername + "/" + tmp;
+        }
+        else if (line[0] == 'd' || line[0] == 'r') {
+            delay = line.after_first('=').to_int();
+        }
+        else if (line == "#start#") {
+            break;
+        }
+        else if (line[0] == '#') {
+            if (line[1] == 't') {
+                title_ = line.after_first('=');
+            }
+            else if (line[1] == 'a') {
+                artist_ = line.after_first('=');
+            }
+            else if (line[1] == 'l') {
+                wxString tmp = line.after_first('=');
+                lev_ = convertToInt(tmp);
+            }
+            else if (line[1] == 'd') {
+                wxString tmp = line.after_first('=');
+                dif_ = convertToInt(tmp);
+            }
+        }
+        line = song.next();
+    }
+    while (!song.is_eof()) {
+        index = line.before_first(' ').to_int();
+        position = 60 * (index - tindex) / tempo;
+        position += tposition;
+        tmp = line.after_first(' ');
 
-            if (folder->HasFiles(tt))
-                music_ = foldername + "/" + tt;
+        if (tmp[0] == 't') {
+            // 變速
+            //計算此拍結束時的拍點
+            tindex = index;
+            //計算此拍的結束位置
+            tposition = position;
+            tempo = tmp.after_first('=').to_int();
         }
-        else if (tmp[0] == 'j') {
-            wxString tt = tmp.AfterFirst('=');
-
-            if (folder->HasFiles(tt))
-                jacket_ = foldername + "/" + tt;
+        else {
+            int note = tmp.to_int();
+            position_[max_index_] = position + delay;
+            onotes[max_index_] = note;
+            max_index_++;
         }
-        else if (tmp[0] == 'd' || tmp[0] == 'r') {
-            wxString tt = tmp.AfterFirst('=');
-            delay = convertToInt(tt);
-        }
-        else if (tmp == "#start#") {
-            notesstart = true;
-        }
-        else if (tmp[0] == '#') {
-            if (tmp[1] == 't') {
-                title_ = tmp.AfterFirst('=');
-            }
-            else if (tmp[1] == 'a') {
-                artist_ = tmp.AfterFirst('=');
-            }
-            else if (tmp[1] == 'l') {
-                wxString tt = tmp.AfterFirst('=');
-                lev_ = convertToInt(tt);
-            }
-            else if (tmp[1] == 'd') {
-                wxString tt = tmp.AfterFirst('=');
-                dif_ = convertToInt(tt);
-            }
-        }
-        else if (notesstart) {
-            wxString tt = tmp.BeforeFirst(' ');
-            index = convertToInt(tt);
-            position = 60 * (index - tindex) / tempo;
-            position += tposition;
-            tt = tmp.AfterFirst(' ');
-
-            if (tt[0] == 't') {
-                // 變速
-                //計算此拍結束時的拍點
-                tindex = index;
-                //計算此拍的結束位置
-                tposition = position;
-                tt = tt.AfterFirst('=');
-                tempo = convertToInt(tt);
-            }
-            else {
-                int note = convertToInt(tt);
-                position_[maxIndex_] = position + delay;
-                onotes[maxIndex_] = note;
-                maxIndex_++;
-            }
-        }
+       
     }
 
-    song.Close();
-    length_ = position_[maxIndex_ - 1];
-    int barLength = length_ + 3000;
+    song.close();
+    length_ = position_[max_index_ - 1];
+    int barlength = length_ + 3000;
 
-    for (int i = 0; i < maxIndex_; i++) {
-        positionInBar_[i] = position_[i] * 120 / barLength;
+    for (int i = 0; i < max_index_; i++) {
+        position_in_bar_[i] = position_[i] * 120 / barlength;
     }
 
-    notes_ = new bool[16 * maxIndex_];
-    judge_ = new int[16 * maxIndex_];
-    //memset (notes_, 0, sizeof (bool) * 16 * (maxIndex_ + 1));
+    notes_ = new bool[16 * max_index_];
+    judge_ = new int[16 * max_index_];
+    //memset (notes_, 0, sizeof (bool) * 16 * (max_index_ + 1));
     musicbar_ = new int[120];
-    noteNumber_ = 0;
+    note_number_ = 0;
     int pointer = 0;
 
     for (int i = 0; i < 120; ++i) {
         musicbar_[i] = 0;
 
-        while (pointer < maxIndex_ && positionInBar_[pointer] <= i) {
+        while (pointer < max_index_ && position_in_bar_[pointer] <= i) {
             for (int j = 0; j < 16; ++j) {
                 if (onotes[pointer] & 1) {
                     notes_[16 * pointer + j] = true;
                     musicbar_[i]++;
-                    noteNumber_++;
+                    note_number_++;
                 }
                 else {
                     notes_[16 * pointer + j] = false;
@@ -175,25 +171,25 @@ void Song::reset()
     miss = 0;
 }
 
-int Song::searchPointer(int position)
+int Song::search_pointer(int position)
 {
-    int* low = std::lower_bound(position_, position_ + maxIndex_, position);
+    int* low = std::lower_bound(position_, position_ + max_index_, position);
     return low - position_;
 }
 
-int Song::getPosition(int pointer)
+int Song::get_position(int pointer)
 {
     return position_[pointer];
 }
 
-bool Song::getNotes(int place, int pointer)
+bool Song::get_notes(int place, int pointer)
 {
     return notes_[16 * pointer + place];
 }
 
 int Song::judge(int place, int pointer, int result)
 {
-    int out = positionInBar_[pointer];
+    int out = position_in_bar_[pointer];
     judge_[16 * pointer + place] = result;
 
     switch (result) {
@@ -220,49 +216,49 @@ int Song::judge(int place, int pointer, int result)
 int Song::calculate()
 {
     int score = 0;
-    score += 900000 * perfect / noteNumber_;
-    score += 630000 * great / noteNumber_;
-    score += 360000 * good / noteNumber_;
-    score += 90000 * poor / noteNumber_;
+    score += 900000 * perfect / note_number_;
+    score += 630000 * great / note_number_;
+    score += 360000 * good / note_number_;
+    score += 90000 * poor / note_number_;
     return score;
 }
 
-int Song::getLength()
+int Song::get_length()
 {
     return length_;
 }
 
-int Song::getMaxIndex()
+int Song::get_max_index()
 {
-    return maxIndex_;
+    return max_index_;
 }
 
-int* Song::getMusicBar()
+int* Song::get_musicbar()
 {
     return musicbar_;
 }
 
-int Song::getNoteNumber()
+int Song::get_note_number()
 {
-    return noteNumber_;
+    return note_number_;
 }
 
-wxString Song::getMusic()
+jb::String Song::get_music()
 {
     return music_;
 }
 
-wxString Song::getTitle()
+jb::String Song::get_title()
 {
     return title_;
 }
 
-wxString Song::getJacket()
+jb::String Song::get_jacket()
 {
     return jacket_;
 }
 
-bool Song::isOk()
+bool Song::is_ok()
 {
-    return isOk_;
+    return is_ok_;
 }

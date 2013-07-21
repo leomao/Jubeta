@@ -5,10 +5,9 @@
 #include <string>
 #include <map>
 
-#include <wx/wx.h>
-#include <wx/dir.h>
-#include <wx/textfile.h>
-#include <wx/encconv.h>
+#include <jb/jb.h>
+#include <jb/dir.h>
+#include <jb/textfile.h>
 
 #include "convert.h"
 
@@ -18,32 +17,33 @@ enum ConvertMode {
     C_MEMO,
     C_NUMBER
 };
+
 // Convert Shift-JIS to UTF-8
-string SJISConv(string buf)
-{
-    char cbuf[buf.length() + 1];
-    strcpy(cbuf, buf.c_str());
-    wxEncodingConverter conv;
-    char tmp[10000];
-    string outBuf;
-    char* inTmp = cbuf;
-    char* outTmp = tmp;
+// string SJISConv(string buf)
+// {
+    // char cbuf[buf.length() + 1];
+    // strcpy(cbuf, buf.c_str());
+    // wxEncodingConverter conv;
+    // char tmp[10000];
+    // string outBuf;
+    // char* inTmp = cbuf;
+    // char* outTmp = tmp;
 
-    bool canconv = conv.Init(wxFONTENCODING_CP932, wxFONTENCODING_UTF8);
+    // bool canconv = conv.Init(wxFONTENCODING_CP932, wxFONTENCODING_UTF8);
 
-    if (!canconv) {
-        return "";
-    }
+    // if (!canconv) {
+        // return "";
+    // }
 
-    //set initial length of in and out string
-    conv.Convert(inTmp, outTmp);
+    // //set initial length of in and out string
+    // conv.Convert(inTmp, outTmp);
 
-    outBuf.assign(tmp);
+    // outBuf.assign(tmp);
 
-    return outBuf;
-}
+    // return outBuf;
+// }
 
-void split(wxString input, wxString& notes, wxString& tempo)
+void split(jb::String input, jb::String& notes, jb::String& tempo)
 {
     int bar = input.find_first_of("|");
 
@@ -60,13 +60,13 @@ void split(wxString input, wxString& notes, wxString& tempo)
     return;
 }
 
-int convert_to_jub(int* tt, wxString notes,
-                   wxString tempo, ConvertMode mode)
+int convert_to_jub(int* tt, jb::String notes,
+                   jb::String tempo, ConvertMode mode)
 {
     int nl = notes.length();
     int tl = tempo.length();
     //int nn[20];
-    map<wxString, int> nn;
+    map<jb::String, int> nn;
     //memset(nn, 0, sizeof(nn));
     int count = 0;
     int i = 0;
@@ -99,7 +99,7 @@ int convert_to_jub(int* tt, wxString notes,
         else if (tempo[i] == '|') {
             i++;
             //int t[10];
-            wxString t[20];
+            jb::String t[20];
 
             while (tempo[i] != '|') {
                 t[count] = tempo.substr(i, 1);
@@ -125,20 +125,20 @@ int convert_to_jub(int* tt, wxString notes,
     return now;
 }
 
-inline string Iconv_SJIS(bool isSJIS, string input)
-{
-    if (isSJIS)
-        input = SJISConv(input);
+// inline string Iconv_SJIS(bool isSJIS, string input)
+// {
+    // if (isSJIS)
+        // input = SJISConv(input);
 
-    return input;
-}
+    // return input;
+// }
 
 void convert_sheet()
 {
-    wxDir* songs = new wxDir(_("convert"));
+    wxDir* songs = new wxDir("convert");
 
-    if (!songs->IsOpened()) {
-        wxMessageBox(_("convert doesn't exist."), _("Failed"));
+    if (!songs->is_opened()) {
+        // wxMessageBox(_("convert doesn't exist."), _("Failed"));
         return;
     }
 
@@ -152,43 +152,43 @@ void convert_sheet()
     bool isSJIS = false;
 
     wxString filename;
-    bool cont = songs->GetFirst(&filename, "*.txt", wxDIR_FILES);
+    bool cont = songs->get_first(&filename, "*.txt", wxDIR_FILES);
     ConvertMode mode;
     while (cont) {
-        cout << "converting " << filename.ToStdString()
+        cout << "converting " << filename.to_std_string()
              << " ..." << endl;
         wxTextFile memo, jub;
-        memo.Open("convert/" + filename);
-        jub.Create("convert/"
+        memo.open("convert/" + filename);
+        jub.create("convert/"
                    + filename.substr(0, filename.length() - 4)
                    + ".jub");
         wxString input;
 
-        input = memo.GetFirstLine();
+        input = memo.first();
 
-        while (!memo.Eof()) {
+        while (!memo.is_eof()) {
             if (input == "#memo" || input == "#memo1") {
                 mode = C_MEMO;
-                jub.AddLine("#start#");
+                jub.add("#start#");
                 break;
             }
             else if (input == "#numbersheet") {
                 mode = C_NUMBER;
-                jub.AddLine("#start#");
+                jub.add("#start#");
                 break;
             }
             else {
-                jub.AddLine(input);
+                jub.add(input);
             }
 
-            input = memo.GetNextLine();
+            input = memo.next();
         }
 
         int now = 0;
         int count;
 
-        while (!memo.Eof()) {
-            input = memo.GetNextLine();
+        while (!memo.is_eof()) {
+            input = memo.next();
             count = 0;
             wxString notes, tempo;
 
@@ -197,14 +197,14 @@ void convert_sheet()
                     wxString tt;
                     tt << now << " ";
                     //cout << input << endl;
-                    jub.AddLine(tt + input);
+                    jub.add(tt + input);
                 }
                 else {
                     split(input, notes, tempo);
                     count++;
 
-                    while (count < 4 && !memo.Eof()) {
-                        input = memo.GetNextLine();
+                    while (count < 4 && !memo.is_eof()) {
+                        input = memo.next();
 
                         if (!input.empty() &&
                                 (input[0] > '9' || input[0] < '0')) {
@@ -224,7 +224,7 @@ void convert_sheet()
                         if (notePosition[i] != 0) {
                             wxString tt;
                             tt << i + now << " " << notePosition[i];
-                            jub.AddLine(tt);
+                            jub.add(tt);
                             //fout << i + now << " " << tt[i] << endl;
                         }
                     }
@@ -236,10 +236,10 @@ void convert_sheet()
             }
         }
 
-        memo.Close();
-        jub.Write();
-        jub.Close();
-        cont = songs->GetNext(&filename);
+        memo.close();
+        jub.write();
+        jub.close();
+        cont = songs->get_next(&filename);
     }
 
     cout << "done." << endl;

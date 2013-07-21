@@ -5,50 +5,56 @@
 
 using namespace std;
 
-int convert_to_int(wxString str)
+double ease_out(int t, int d)
 {
-    long tmp;
-    str.ToLong(&tmp);
-    int out = tmp;
-    return out;
+    double tt = t / d;
+    return (2 - tt) * tt;
 }
 
-string convert_to_string(int num)
-{
-    string out = "";
-    bool sgn = false;
+// int convert_to_int(wxString str)
+// {
+    // long tmp;
+    // str.ToLong(&tmp);
+    // int out = tmp;
+    // return out;
+// }
 
-    if (num < 0)
-        sgn = true;
+// string convert_to_string(int num)
+// {
+    // string out = "";
+    // bool sgn = false;
 
-    if (num == 0)
-        return "0";
+    // if (num < 0)
+        // sgn = true;
 
-    while (num != 0) {
-        char c = '0' + num % 10;
-        num /= 10;
-        out += c;
-    }
+    // if (num == 0)
+        // return "0";
 
-    if (sgn)
-        out += '-';
+    // while (num != 0) {
+        // char c = '0' + num % 10;
+        // num /= 10;
+        // out += c;
+    // }
 
-    reverse(out.begin(), out.end());
-    return out;
-}
+    // if (sgn)
+        // out += '-';
 
-void render(wxDC& dc, wxBitmap image, int x, int y)
-{
-    if (image.IsOk())
-        dc.DrawBitmap(image, x, y, true);
+    // reverse(out.begin(), out.end());
+    // return out;
+// }
 
-    return;
-}
+// void render(wxDC& dc, wxBitmap image, int x, int y)
+// {
+    // if (image.IsOk())
+        // dc.DrawBitmap(image, x, y, true);
 
-void render(wxDC& dc, wxBitmap image, wxPoint pos)
-{
-    if (image.IsOk())
-        dc.DrawBitmap(image, pos.x, pos.y, true);
+    // return;
+// }
 
-    return;
-}
+// void render(wxDC& dc, wxBitmap image, wxPoint pos)
+// {
+    // if (image.IsOk())
+        // dc.DrawBitmap(image, pos.x, pos.y, true);
+
+    // return;
+// }

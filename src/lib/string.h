@@ -8,22 +8,19 @@
 
 #include <jb/jb.h>
 
-#include <wx/wx.h>
-#include <wx/string.h>
-
-using namespace std;
-
 // definition of class jb::String
-class jb::String : public wxString
+class jb::String : public std::string
 {
 public:
     String();
     String(const char* str);
-    String(const string& str);
+    String(const std::string& str);
     String(const String& str);
     String operator= (const char* str);
-    String operator= (const string& str);
+    String operator= (const std::string& str);
     ~String();
+    string to_std_string();
+    size_t length();
 
 private:
 
