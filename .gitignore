@@ -1,0 +1,27 @@
+# Binary folder
+bin
+
+# python
+__pycache__
+
+# Tags
+tags
+src/tags
+
+# something else
+rev.txt
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.pyc
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
