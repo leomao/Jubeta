@@ -44,7 +44,7 @@ Button::Button(wxWindow* parent, int place,
     bg_       = bg;
 
     jacketPosition_ = wxPoint(size_.x * 0.075 + 1,
-                              size_.y * 0.12 + 1);
+                              size_.y * 0.075 + 1);
 
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
@@ -244,7 +244,7 @@ void Button::onPaint(wxPaintEvent& event)
                 //dc.SetPen(wxPen(col, 3, wxSOLID));
 
                 if (place_ < 12 && item_->isOk()) {
-                    dc.DrawText(item_->getTitle(), 2, 0);
+                    // dc.DrawText(item_->getTitle(), 2, 0);
                     render(dc, jackets_[place_], jacketPosition_);
                 }
                 else

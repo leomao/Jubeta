@@ -18,7 +18,7 @@
 
 // 預設寬高
 const long defheight = 700;
-const long defwidth = 500;
+const long defwidth = 600;
 // 預設鍵位
 const long defkey[16] = {52, 53, 54, 55, 82, 84, 89, 85,
                          70, 71, 72, 74, 86, 66, 78, 77
@@ -190,6 +190,7 @@ void Jubeta::setMarker(wxString markername)
     if (!markerdir.IsOpened()) {
         wxMessageBox("Fail to load Marker!!");
         this->Close();
+        return;
     }
     else {
         wxImage omarker[80];
@@ -272,6 +273,7 @@ void Jubeta::setTheme(wxString theme)
     if (!imagedir.IsOpened() || !sounddir.IsOpened()) {
         wxMessageBox("Fail to Load Theme!!");
         this->Close();
+        return;
     }
     else {
         wxImage ojackets[16];
@@ -337,6 +339,7 @@ void Jubeta::loadSongs()
     if (!songdir.IsOpened()) {
         wxMessageBox("Fail to load Songs!!");
         this->Close();
+        return;
     }
     else {
         songCount = 0; // 計算有幾首曲目
@@ -581,20 +584,21 @@ void Jubeta::sync(int position)
             musicbar->GetNow() - position_ > 20) {
         isstart = musicbar->NowRefresh(position_);
     }
+    if (!isstart)
+        finish();
 
     for (int i = 0; i < 16; i++) {
         buttons[i]->runMarker(position_);
     }
 
     wxString tmp;
-    tmp.Printf("Jubeta - Score : %d Notes : %d",
-               now_->calculate(), now_->getNoteNumber());
+    tmp.Printf("Jubeta - Score : %d Notes : %d Combo : %d",
+               now_->calculate(), now_->getNoteNumber(), now_->combo);
     SetTitle(tmp);
 
     if (!ispaused) {
         while (pointer < maxIndex_ &&
                 now_->getPosition(pointer) <= position_) {
-            //printf("%d : ", pointer);
             for (int i = 0; i < 16; i++) {
                 if (now_->getNotes(i, pointer)) 
                     buttons[i]->start(pointer,
@@ -602,7 +606,6 @@ void Jubeta::sync(int position)
             }
 
             pointer++;
-            //printf("\n");
         }
     }
 
@@ -664,19 +667,14 @@ void Jubeta::stop()
 void Jubeta::finish()
 {
     wxString out;
-    out.Printf("Score : %d\n\
-                Perfect : %d\n\
-                Great : %d\n\
-                Good : %d\n\
-                Poor : %d\n\
-                Miss : %d\n",
-               now_->calculate(),
+    out.Printf("Score : %d\n Perfect : %d\n Great : %d\n Good : %d\n Poor : %d\n Miss : %d\n",
+               now_->calculate() + now_->calBonus(),
                now_->perfect,
                now_->great,
                now_->good,
                now_->poor,
                now_->miss);
-    wxMessageBox(out, "Score");
+    wxMessageBox(out, "Result");
     return;
 }
 

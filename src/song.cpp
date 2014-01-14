@@ -16,9 +16,9 @@ Song::Song()
 
 Song::Song(wxString name)
 {
-    position_ = new int[10000];
-    positionInBar_ = new int[10000];
-    int* onotes = new int[160000];
+    position_ = new int[10000]();
+    positionInBar_ = new int[10000]();
+    int* onotes = new int[160000]();
     jacket_ = "none";
     music_ = "none";
     maxIndex_ = 0;
@@ -127,10 +127,9 @@ Song::Song(wxString name)
         positionInBar_[i] = position_[i] * 120 / barLength;
     }
 
-    notes_ = new bool[16 * maxIndex_];
-    judge_ = new int[16 * maxIndex_];
-    //memset (notes_, 0, sizeof (bool) * 16 * (maxIndex_ + 1));
-    musicbar_ = new int[120];
+    notes_ = new bool[16 * maxIndex_]();
+    judge_ = new int[16 * maxIndex_]();
+    musicbar_ = new int[120]();
     noteNumber_ = 0;
     int pointer = 0;
 
@@ -173,6 +172,8 @@ void Song::reset()
     good = 0;
     poor = 0;
     miss = 0;
+    combo = 0;
+    door = 0;
 }
 
 int Song::searchPointer(int position)
@@ -199,20 +200,34 @@ int Song::judge(int place, int pointer, int result)
     switch (result) {
         case 4:
             perfect++;
+            door += 2;
+            combo++;
             break;
         case 3:
             great++;
+            door += 2;
+            combo++;
             break;
         case 2:
             good++;
+            door += 1;
+            combo++;
             break;
         case 1:
             poor++;
+            door -= 8;
+            combo = 0;
             break;
         case 0:
             miss++;
+            door -= 8;
+            combo = 0;
             break;
     }
+    if (door > noteNumber_)
+        door = noteNumber_;
+    else if(door < 0)
+        door = 0;
 
     return out;
 }
@@ -225,6 +240,11 @@ int Song::calculate()
     score += 360000 * good / noteNumber_;
     score += 90000 * poor / noteNumber_;
     return score;
+}
+
+int Song::calBonus()
+{
+     return 100000 * door / noteNumber_;
 }
 
 int Song::getLength()
@@ -265,4 +285,9 @@ wxString Song::getJacket()
 bool Song::isOk()
 {
     return isOk_;
+}
+
+bool Song::compareByLev(Song* s1, Song* s2)
+{
+    return s1->lev_ < s2->lev_;
 }

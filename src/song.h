@@ -15,6 +15,8 @@ public:
     int good;
     int poor;
     int miss;
+    int combo;
+    int door;
 
     void reset();
     int searchPointer(int);
@@ -22,6 +24,7 @@ public:
     bool getNotes(int, int);
     int judge(int, int, int);
     int calculate();
+    int calBonus();
     int getLength();
     int getMaxIndex();
     int getNoteNumber();
@@ -30,6 +33,8 @@ public:
     wxString getTitle();
     wxString getJacket();
     bool isOk();
+
+    static bool compareByLev(Song*, Song*);
 
 private:
     bool isOk_;
@@ -54,6 +59,5 @@ private:
 
 };
 
-bool levelCompare(Song*, Song*);
 
 #endif

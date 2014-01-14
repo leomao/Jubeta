@@ -13,9 +13,9 @@ BINPATH = ./bin/
 COMPILER= $(shell wx-config --cxx)
 LINKER  = $(shell wx-config --cxx)
 
-SHARED := 0
+SHARED := 1
 
-DEFINES = -g -O2
+DEFINES = -O2
 CXXFLAG =
 WXCXXFLAG = `wx-config --static=yes --cxxflags`
 WXSHAREDCXXFLAG = `wx-config --static=no --cxxflags`
