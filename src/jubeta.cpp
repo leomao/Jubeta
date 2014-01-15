@@ -69,7 +69,7 @@ Jubeta::Jubeta()
         config->Write("height", defheight);
 
     height = configData;
-    SetClientSize(width, height + 20);
+    SetClientSize(width, height);
 
     //設定鍵位
     //之後要加入 gamepad 的 Key
@@ -94,8 +94,6 @@ Jubeta::Jubeta()
     //
     // 設定畫面配置
     // 以後看是不是改用 Sizer
-    
-    //height -= 20;
 
     if (width < height) {
         board = width / 21;
@@ -158,7 +156,6 @@ Jubeta::Jubeta()
     loadSongs();
     Center();
 
-    //Bind (wxEVT_IDLE, &Jubeta::OnIdle, this);
     Bind(wxEVT_TIMER, &Jubeta::onTimer, this, ID_SYNCTIMER);
     // 微小時間的觸發器和 onTimer()連結
     //musicbar->Bind(wxEVT_LEFT_DOWN, &Jubeta::onLeftDown, this);
@@ -171,16 +168,12 @@ Jubeta::Jubeta()
     return;
 }
 
-
-
 Jubeta::~Jubeta()
 {
     // Destructor
     delete music, syncTimer, inf, bg, musicbar, now_, config;
     delete []  buttons, songs;
 }
-
-
 
 void Jubeta::setMarker(wxString markername)
 {
@@ -255,14 +248,10 @@ void Jubeta::setMarker(wxString markername)
     return;
 }
 
-
-
 void Jubeta::setKey(int button, int keycode)
 {
     return;
 }
-
-
 
 void Jubeta::setTheme(wxString theme)
 {
@@ -330,8 +319,6 @@ void Jubeta::setTheme(wxString theme)
     return;
 }
 
-
-
 void Jubeta::loadSongs()
 {
     wxDir songdir("songs");
@@ -366,8 +353,6 @@ void Jubeta::loadSongs()
     return;
 }
 
-
-
 void Jubeta::welcome()
 {
     Refresh();
@@ -375,14 +360,10 @@ void Jubeta::welcome()
     chooseSong();
 }
 
-
-
 void Jubeta::setUser()
 {
     // 未加入此功能
 }
-
-
 
 void Jubeta::chooseSong()
 {
@@ -391,8 +372,6 @@ void Jubeta::chooseSong()
     select(currentPlace);  // 預設選擇上次的曲目
     return;
 }
-
-
 
 void Jubeta::setItem()
 {
@@ -435,8 +414,6 @@ void Jubeta::setItem()
     return;
 }
 
-
-
 void Jubeta::shiftLeft()
 {
     itemPosition -= 3;
@@ -467,8 +444,6 @@ void Jubeta::shiftLeft()
         }
     }
 }
-
-
 
 void Jubeta::shiftRight()
 {
@@ -501,8 +476,6 @@ void Jubeta::shiftRight()
     }
 }
 
-
-
 void Jubeta::select(int button_i)
 {
     if (button_i >= 0 && button_i < 12) {
@@ -523,8 +496,6 @@ void Jubeta::select(int button_i)
     return;
 }
 
-
-
 void Jubeta::setMusicBar(Song* in)
 {
     musicbar->Set(in);
@@ -532,16 +503,12 @@ void Jubeta::setMusicBar(Song* in)
     return;
 }
 
-
-
 void Jubeta::start()
 {
     status = S_PLAY;
     play();
     return;
 }
-
-
 
 void Jubeta::play()
 {
@@ -564,8 +531,6 @@ void Jubeta::play()
     return;
 }
 
-
-
 void Jubeta::jump(int pixelPosition)
 {
     toggle(-1);
@@ -573,8 +538,6 @@ void Jubeta::jump(int pixelPosition)
     music->jump(position_);
     pointer =  now_->searchPointer(position_);
 }
-
-
 
 void Jubeta::sync(int position)
 {
@@ -612,8 +575,6 @@ void Jubeta::sync(int position)
     return;
 }
 
-
-
 void Jubeta::toggle(int s = 0)
 {
     if (s < 0 && !ispaused) {
@@ -649,8 +610,6 @@ void Jubeta::toggle(int s = 0)
     return;
 }
 
-
-
 void Jubeta::stop()
 {
     isstart = false;
@@ -662,12 +621,10 @@ void Jubeta::stop()
     return;
 }
 
-
-
 void Jubeta::finish()
 {
     wxString out;
-    out.Printf("Score : %d\n Perfect : %d\n Great : %d\n Good : %d\n Poor : %d\n Miss : %d\n",
+    out.Printf("Score : %d\nPerfect : %d\nGreat : %d\nGood : %d\nPoor : %d\nMiss : %d\n",
                now_->calculate() + now_->calBonus(),
                now_->perfect,
                now_->great,
@@ -677,8 +634,6 @@ void Jubeta::finish()
     wxMessageBox(out, "Result");
     return;
 }
-
-
 
 void Jubeta::setOption()
 {
@@ -690,15 +645,11 @@ void Jubeta::setOption()
     return;
 }
 
-
-
 void Jubeta::convert()
 {
     Convert_sheet();
     return;
 }
-
-
 
 void Jubeta::onTimer(wxTimerEvent& evt)
 {
@@ -713,18 +664,6 @@ void Jubeta::onTimer(wxTimerEvent& evt)
     return;
 }
 
-
-
-
-void Jubeta::onIdle(wxIdleEvent& evt)
-{
-    //Switcher();
-    evt.RequestMore();
-    return;
-}
-
-
-
 void Jubeta::onLeftDown(wxMouseEvent& evt)
 {
     if (status == S_PLAY && isstart) {
@@ -732,15 +671,11 @@ void Jubeta::onLeftDown(wxMouseEvent& evt)
     }
 }
 
-
-
 void Jubeta::onLeftUp(wxMouseEvent& evt)
 {
     if (status == S_PLAY) {
     }
 }
-
-
 
 void Jubeta::onKey(wxKeyEvent& evt)
 {
@@ -748,11 +683,9 @@ void Jubeta::onKey(wxKeyEvent& evt)
 
     switch (status) {
         case S_WEL :
-
             break;
 
         case S_CH :
-
             if (keycode == WXK_ESCAPE) {
                 //status = S_WEL;
             }
@@ -777,11 +710,9 @@ void Jubeta::onKey(wxKeyEvent& evt)
                     }
                 }
             }
-
             break;
 
         case S_PLAY :
-
             if (isstart && keycode == WXK_SPACE) {
                 toggle();
             }
@@ -802,18 +733,13 @@ void Jubeta::onKey(wxKeyEvent& evt)
                     }
                 }
             }
-
             break;
 
         case S_OPT :
-
             break;
     }
-
     return;
 }
-
-
 
 void Jubeta::releaseKey(wxKeyEvent& evt)
 {
@@ -829,8 +755,6 @@ void Jubeta::releaseKey(wxKeyEvent& evt)
     return;
 }
 
-
-
 void Jubeta::onAbout(wxCommandEvent& event)
 {
     wxString tmp = "Jubeta Emulator" + VERSIONNO
@@ -839,8 +763,6 @@ void Jubeta::onAbout(wxCommandEvent& event)
     wxMessageBox(tmp, "About Jubeta");
     return;
 }
-
-
 
 void Jubeta::onQuit(wxCommandEvent& event)
 {

@@ -109,8 +109,6 @@ private:
     void convert();
 
     void onTimer(wxTimerEvent& evt);
-    void onIdle(wxIdleEvent& evt);
-    //void OnLoad (wxMediaEvent& evt);
     void onLeftDown(wxMouseEvent& evt);
     void onLeftUp(wxMouseEvent& evt);
     void onAbout(wxCommandEvent& event);

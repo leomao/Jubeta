@@ -51,8 +51,6 @@ Button::Button(wxWindow* parent, int place,
     Bind(wxEVT_PAINT, &Button::onPaint, this);
 }
 
-
-
 void Button::setCanChose(bool canChose, Song* item)
 {
     canChose_ = canChose;
@@ -65,14 +63,10 @@ void Button::setCanChose(bool canChose, Song* item)
     return;
 }
 
-
-
 bool Button::getCanChose()
 {
     return canChose_;
 }
-
-
 
 void Button::choose(bool isSelected)
 {
@@ -83,8 +77,6 @@ void Button::choose(bool isSelected)
 
     return;
 }
-
-
 
 void Button::start(int po, int st)
 {
@@ -99,8 +91,6 @@ void Button::start(int po, int st)
     return;
 }
 
-
-
 void Button::toggle()
 {
     if (isPaused_) {
@@ -113,14 +103,10 @@ void Button::toggle()
     return;
 }
 
-
-
 void Button::jump(int position)
 {
     
 }
-
-
 
 void Button::press(int pressPosition)
 {
@@ -159,16 +145,12 @@ void Button::press(int pressPosition)
     return;
 }
 
-
-
 void Button::release()
 {
     isPressed_ = false;
     Refresh();
     return;
 }
-
-
 
 void Button::stop()
 {
@@ -177,14 +159,10 @@ void Button::stop()
     Refresh();
 }
 
-
-
 int  Button::getFrame()
 {
     return frame_;
 }
-
-
 
 void Button::runMarker(int nowPosition)
 {
@@ -207,8 +185,6 @@ void Button::runMarker(int nowPosition)
 
     return;
 }
-
-
 
 void Button::onPaint(wxPaintEvent& event)
 {
@@ -250,7 +226,6 @@ void Button::onPaint(wxPaintEvent& event)
                 else
                     render(dc, jackets_[place_], 0, 0);
             }
-
             break;
         case S_PLAY:
             if (!isBGHidden)
@@ -265,10 +240,9 @@ void Button::onPaint(wxPaintEvent& event)
                 col.Set("#FB81FF");
                 wxBrush brush(wxColour(255, 255, 255), wxTRANSPARENT);
                 dc.SetBrush(brush);
-                dc.SetPen(wxPen(col, 3, wxSOLID));
+                dc.SetPen(wxPen(col, 5, wxSOLID));
                 dc.DrawRectangle(wxPoint(0, 0), size_);
             }
-
             break;
         case S_OPT:
             if (!isBGHidden)
