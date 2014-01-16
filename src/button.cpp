@@ -72,8 +72,8 @@ void Button::choose(bool isSelected)
 {
     if (canChose_) {
         isSelected_ = isSelected;
-        Refresh();
     }
+    Refresh();
 
     return;
 }

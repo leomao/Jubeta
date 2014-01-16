@@ -48,7 +48,6 @@ void render(wxDC& dc, wxBitmap image, int x, int y)
 void render(wxDC& dc, wxBitmap image, wxPoint pos)
 {
     if (image.IsOk())
-        dc.DrawBitmap(image, pos.x, pos.y, true);
-
+        dc.DrawBitmap(image, pos, true);
     return;
 }

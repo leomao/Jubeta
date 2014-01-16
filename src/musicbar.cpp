@@ -71,19 +71,6 @@ void MusicBar::Result(int index, int judge)
     return;
 }
 
-void MusicBar::Now(int n)
-{
-    bool out = true;
-    now_ = n;
-
-    if (now_ > length_) {
-        now_ = length_;
-        out = false;
-    }
-
-    return;
-}
-
 int MusicBar::GetNow()
 {
     return now_;
@@ -98,22 +85,15 @@ bool MusicBar::NowRefresh(int n)
     if (j1 != j)
         judge_[j] = 4;
 
-    int x = side_ * 120 * n / length_;
-    x -= side_;
-    int x1 = side_ * 120 * now_ / length_;
-    x1 -= side_;
+    now_ = n;
 
-    if (x1 != x) {
-        now_ = n;
-
-        if (now_ > length_) {
-            now_ = length_;
-            out = false;
-        }
-        else {
-            //RefreshRect(wxRect(x, 0, side_ * 2, side_ * 12));
-            Refresh();
-        }
+    if (now_ > length_) {
+        now_ = length_;
+        out = false;
+    }
+    else {
+        //RefreshRect(wxRect(x, 0, side_ * 2, side_ * 12));
+        Refresh();
     }
 
     return out;

@@ -12,7 +12,6 @@ public:
     MusicBar(wxWindow*, wxPoint, wxSize);
     void Set(Song*);
     void Result(int, int);
-    void Now(int);
     int GetNow();
     bool NowRefresh(int);
     int jump(int);

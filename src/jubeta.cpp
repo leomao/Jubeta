@@ -83,7 +83,7 @@ Jubeta::Jubeta()
         key[i] = configData;
     }
 
-    SetBackgroundStyle(wxBG_STYLE_PAINT);
+    // SetBackgroundStyle(wxBG_STYLE_SYSTEM);
     //
     wxSize  barsize;
     wxPoint barpos;
@@ -163,7 +163,7 @@ Jubeta::Jubeta()
 
     welcome(); //一開始先從 welcome()開始進入正式程序
     //Switcher(); 
-    //syncTimer->Start (1);
+    syncTimer->Start(16);
     
     return;
 }
@@ -492,6 +492,7 @@ void Jubeta::select(int button_i)
             music->Load(now_);
         }
     }
+    Refresh();
 
     return;
 }
@@ -543,12 +544,12 @@ void Jubeta::sync(int position)
 {
     position_ = position;
 
-    if (position_ - musicbar->GetNow() > 20 ||
-            musicbar->GetNow() - position_ > 20) {
-        isstart = musicbar->NowRefresh(position_);
-    }
-    if (!isstart)
+    isstart = musicbar->NowRefresh(position_);
+    if (!isstart) {
         finish();
+        stop();
+        return;
+    }
 
     for (int i = 0; i < 16; i++) {
         buttons[i]->runMarker(position_);
@@ -582,7 +583,6 @@ void Jubeta::toggle(int s = 0)
 
         music->Pause();
 
-        //syncTimer->Stop();
         for (int i = 0; i < 16; i++) {
             buttons[i]->toggle();
         }
@@ -596,7 +596,6 @@ void Jubeta::toggle(int s = 0)
             buttons[i]->toggle();
         }
 
-        //syncTimer->Start();
     }
     else {
         if (ispaused) {
@@ -613,10 +612,10 @@ void Jubeta::toggle(int s = 0)
 void Jubeta::stop()
 {
     isstart = false;
+    // syncTimer->Stop();
+    syncTimer->Start(16);
     music->Stop();
-    syncTimer->Stop();
     musicbar->Clean();
-    status = S_CH;
     chooseSong();
     return;
 }
@@ -659,7 +658,7 @@ void Jubeta::onTimer(wxTimerEvent& evt)
         }
     }
     else {
-        stop();
+        Refresh();
     }
     return;
 }
@@ -766,7 +765,7 @@ void Jubeta::onAbout(wxCommandEvent& event)
 
 void Jubeta::onQuit(wxCommandEvent& event)
 {
-    Close();
+    this->Close();
     return;
 }
 
