@@ -59,6 +59,7 @@ void Button::setCanChose(bool canChose, Song* item)
     if (!canChose_) {
         isSelected_ = false;
     }
+    Refresh();
 
     return;
 }
@@ -87,7 +88,6 @@ void Button::start(int po, int st)
     time_     = 0;
     isPaused_ = false;
     Refresh();
-    //printf("%d ", place_);
     return;
 }
 
@@ -99,6 +99,7 @@ void Button::toggle()
     else if (frame_ < 80) {
         isPaused_ = true;
     }
+    Refresh();
 
     return;
 }

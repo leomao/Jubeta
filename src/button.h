@@ -26,6 +26,8 @@ public:
     int getFrame();
     void runMarker(int);
 
+    void RefreshNow();
+
     static bool isBGhidden;
     //
 private:

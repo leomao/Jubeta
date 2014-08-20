@@ -11,6 +11,8 @@
 #include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/dcbuffer.h>
+#include <wx/dcgraph.h>
+#include <wx/graphics.h>
 #include <wx/dir.h>
 #include <wx/utils.h>
 #include <wx/mediactrl.h>
@@ -83,7 +85,6 @@ Jubeta::Jubeta()
         key[i] = configData;
     }
 
-    // SetBackgroundStyle(wxBG_STYLE_SYSTEM);
     //
     wxSize  barsize;
     wxPoint barpos;
@@ -158,12 +159,13 @@ Jubeta::Jubeta()
 
     Bind(wxEVT_TIMER, &Jubeta::onTimer, this, ID_SYNCTIMER);
     // 微小時間的觸發器和 onTimer()連結
-    //musicbar->Bind(wxEVT_LEFT_DOWN, &Jubeta::onLeftDown, this);
-    //musicbar->Bind(wxEVT_LEFT_UP, &Jubeta::onLeftUp, this);
+    // musicbar->Bind(wxEVT_LEFT_DOWN, &Jubeta::onLeftDown, this);
+    // musicbar->Bind(wxEVT_LEFT_UP, &Jubeta::onLeftUp, this);
+    // SetBackgroundStyle(wxBG_STYLE_PAINT);
+    // Bind(wxEVT_PAINT, &Jubeta::onPaint, this);
 
     welcome(); //一開始先從 welcome()開始進入正式程序
-    //Switcher(); 
-    syncTimer->Start(16);
+    // syncTimer->Start(16);
     
     return;
 }
@@ -612,8 +614,7 @@ void Jubeta::toggle(int s = 0)
 void Jubeta::stop()
 {
     isstart = false;
-    // syncTimer->Stop();
-    syncTimer->Start(16);
+    syncTimer->Stop();
     music->Stop();
     musicbar->Clean();
     chooseSong();
@@ -656,9 +657,6 @@ void Jubeta::onTimer(wxTimerEvent& evt)
         if (position_ != music->Time()) {
             sync(music->Time());
         }
-    }
-    else {
-        Refresh();
     }
     return;
 }
